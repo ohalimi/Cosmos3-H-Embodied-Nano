@@ -205,3 +205,7 @@ core.*
 /downloaded_data/
 .ipynb_checkpoints
 design_and_decisions_log.md
+
+# cluster-local launch files and run records
+*.sbatch
+repro/

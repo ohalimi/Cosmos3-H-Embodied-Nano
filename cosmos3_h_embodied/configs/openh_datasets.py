@@ -8,6 +8,8 @@ Roots are paths relative to the prepared data directory (``OPENH_DATA_ROOT``), w
 the layout of the Open-H Hugging Face dataset (see ``tools/data_prep/README.md``). Roots
 marked ``public=False`` were part of the training mixture of the released checkpoint but
 are not on the Hugging Face dataset; they are left out unless ``include_nonpublic=True``.
+Families marked ``opt_in`` are not part of the mixture; they are built only when an experiment
+names them in ``families``.
 """
 
 from __future__ import annotations
@@ -43,6 +45,7 @@ class Family:
     cls: Any
     roots: tuple[Root, ...]
     kwargs: dict[str, Any] = field(default_factory=dict)
+    opt_in: bool = False
 
 
 # Settings shared by every family (H16 task-prompt recipe).
@@ -280,6 +283,26 @@ FAMILIES: tuple[Family, ...] = (
         tuple(Root(f"jhu/lcsr/smarts/SurgSync-stitch-coldcut/{p}", "smarts") for p in ("P1", "P2", "P3")),
         _dvrk("smarts", "dvrk_smarts_backward_anchored_worldtrans_rot6d.json", "observation.images.endoscope_left"),
     ),
+    # SutureBot demonstrations and failures; the roots sit directly below OPENH_DATA_ROOT.
+    Family(
+        "suturebot_oshri",
+        1.0,
+        GeneralizedDvrkHistoryDataset,
+        tuple(
+            Root(p, "suturebot", public=False)
+            for p in (
+                "hf_suturebot", "ood", "suture_bot_failure", "cosmos_fail_filtered", "cosmos_throw_fail_demo",
+                "cosmos_knot_fail_demo", "suturebot_act_throw_eval",
+            )
+        ),  # fmt: skip
+        _dvrk(
+            "suturebot",
+            "suturebot_backward_anchored_worldtrans_rot6d.json",
+            "observation.images.endoscope_left",
+            duplicate_frame_max_fraction=0.5,
+        ),
+        opt_in=True,
+    ),
 )
 
 # Caption contexts the released checkpoint saw where they differ from the per-root ones
@@ -289,7 +312,7 @@ LEGACY_CAPTION_OVERRIDES: dict[str, str] = {"tud/260131_tundra_dataset/grasping_
 
 
 def family_names(include_nonpublic: bool = False) -> list[str]:
-    return [f.name for f in FAMILIES if include_nonpublic or any(r.public for r in f.roots)]
+    return [f.name for f in FAMILIES if not f.opt_in and (include_nonpublic or any(r.public for r in f.roots))]
 
 
 def build_dataset_entries(
@@ -308,7 +331,7 @@ def build_dataset_entries(
         caption_prefix_mode: ``"fixed"`` (per-root caption context) or ``"legacy"``
             (the caption contexts the released checkpoint was trained with).
         resolution: Resolution tier of every family.
-        families: Only these families (default: all).
+        families: Only these families (default: all except the opt-in ones).
         dataset_overrides: Extra keyword arguments for every dataset (e.g. ``max_windows``).
     """
     unknown = set(families or []) - {f.name for f in FAMILIES}
@@ -316,7 +339,8 @@ def build_dataset_entries(
         raise ValueError(f"unknown families {sorted(unknown)}")
     entries = []
     for family in FAMILIES:
-        if families is not None and family.name not in families:
+        selected = family.name in families if families is not None else not family.opt_in
+        if not selected:
             continue
         roots = [r for r in family.roots if include_nonpublic or r.public]
         if not roots:

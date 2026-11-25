@@ -24,7 +24,8 @@ import cosmos_framework
 from hydra.core.config_store import ConfigStore
 
 from cosmos3_h_embodied.callbacks.action_dataloader_state import ActionDataLoaderStateCallback
-from cosmos3_h_embodied.configs.openh_datasets import build_dataset_entries
+from cosmos3_h_embodied.callbacks.repro_record import ReproRecordCallback
+from cosmos3_h_embodied.configs.openh_datasets import FAMILIES, build_dataset_entries
 from cosmos3_h_embodied.data.dataloaders import InfiniteDataLoader
 from cosmos3_h_embodied.data.joint_dataloader import HistoryMatchedJointDataLoader
 from cosmos3_h_embodied.data.unified_dataset import wrap_dataset
@@ -77,8 +78,11 @@ def h16_dataloader(
     shard_across_workers: bool = True,
     num_workers: int = 12,
     prefetch_factor: int = 16,
+    augment: bool = True,
     **dataset_overrides,
 ) -> LazyDict:
+    """The action dataloader of the recipe. ``augment=False`` (validation) turns off video augmentation and
+    caption dropout."""
     families = build_dataset_entries(
         include_nonpublic=include_nonpublic,
         caption_prefix_mode=caption_prefix_mode,
@@ -94,12 +98,12 @@ def h16_dataloader(
         append_viewpoint_info=False,
         append_resolution_info=True,
         caption_key="ai_caption",
-        cfg_dropout_rate=0.1,
+        cfg_dropout_rate=0.1 if augment else 0.0,
         format_prompt_as_json=False,
         idle_frames_dropout=0.05,
         keep_aspect_ratio=True,
-        video_augment=dict(enabled=True, erasing_prob=0.0, frame_chunk_size=1),
-        video_augment_cuda_families=family_names,
+        video_augment=dict(enabled=True, erasing_prob=0.0, frame_chunk_size=1) if augment else None,
+        video_augment_cuda_families=family_names if augment else [],
         max_action_dim="${model.config.max_action_dim}",
         pad_keys=None,
         resolution=None,
@@ -161,6 +165,8 @@ def _experiment(
     include_nonpublic: bool,
     caption_prefix_mode: str,
     lr_schedule: str = "continue",
+    dataloader_val: LazyDict | None = None,
+    callbacks: dict | None = None,
     **dataloader_kwargs,
 ) -> LazyDict:
     return LazyDict(
@@ -225,6 +231,7 @@ def _experiment(
                     manual_gc=dict(every_n=200),
                     skip_nan_step=dict(max_consecutive_nan=100),
                     training_stats=dict(log_freq=10),
+                    **(callbacks or {}),
                 ),
             ),
             checkpoint=dict(
@@ -241,7 +248,7 @@ def _experiment(
             dataloader_train=h16_dataloader(
                 include_nonpublic=include_nonpublic, caption_prefix_mode=caption_prefix_mode, **dataloader_kwargs
             ),
-            dataloader_val=None,
+            dataloader_val=dataloader_val,
             upload_reproducible_setup=False,
         ),
         flags={"allow_objects": True},
@@ -283,7 +290,8 @@ def register_experiment(
 ) -> LazyDict:
     """Build an experiment like ``openh_h16_task_prompt`` with changes, and register it as ``name``.
 
-    ``kwargs``: ``lr_schedule`` (a key of ``LR_SCHEDULES``), the options of :func:`h16_dataloader`
+    ``kwargs``: ``lr_schedule`` (a key of ``LR_SCHEDULES``), ``dataloader_val`` (a validation dataloader,
+    default none), ``callbacks`` (extra trainer callbacks), the options of :func:`h16_dataloader`
     (``families``, ``shard_across_workers``, ``num_workers``, ...), and dataset options applied to
     every family (e.g. ``mode="forward_dynamics"``, ``joint_mode_weights``, ``max_windows``). Example::
 
@@ -292,3 +300,24 @@ def register_experiment(
     node = _experiment(name, include_nonpublic=include_nonpublic, caption_prefix_mode=caption_prefix_mode, **kwargs)
     cs.store(group="experiment", package="_global_", name=name, node=node)
     return node
+
+
+# SutureBot memory experiments on the opt-in ``suturebot_oshri`` family. The launch sets OPENH_DATA_ROOT to the
+# directory that holds the family's roots and REPRO_DIR to the run's reproducibility record. Validation uses the
+# family's val split (the split seed and ratio of training) without augmentation.
+_SUTUREBOT = dict(
+    include_nonpublic=True, caption_prefix_mode="fixed", families=["suturebot_oshri"], shard_across_workers=False
+)
+_SUTUREBOT_FAMILY = next(f for f in FAMILIES if f.name == "suturebot_oshri")
+for _name in ("suturebot-h16", "suturebot-h16-smoke"):
+    register_experiment(
+        _name,
+        **_SUTUREBOT,
+        dataloader_val=h16_dataloader(**_SUTUREBOT, augment=False, num_workers=4, prefetch_factor=2, split="val"),
+        callbacks=dict(
+            repro=L(ReproRecordCallback)(
+                normalizer=_SUTUREBOT_FAMILY.kwargs["normalizer_filename"],
+                data_roots=[r.path for r in _SUTUREBOT_FAMILY.roots],
+            )
+        ),
+    )
