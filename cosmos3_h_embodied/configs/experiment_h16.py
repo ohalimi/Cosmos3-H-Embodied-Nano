@@ -321,3 +321,18 @@ for _name in ("suturebot-h16", "suturebot-h16-smoke"):
             )
         ),
     )
+
+# Sixteen history positions stay. Every row except the newest is zero, so the
+# length is not set to 0 and the future action window is left alone.
+_CURRENT_ROW = {**_SUTUREBOT, "mask_older_history": True}
+register_experiment(
+    "suturebot-current-row",
+    **_CURRENT_ROW,
+    dataloader_val=h16_dataloader(**_CURRENT_ROW, augment=False, num_workers=4, prefetch_factor=2, split="val"),
+    callbacks=dict(
+        repro=L(ReproRecordCallback)(
+            normalizer=_SUTUREBOT_FAMILY.kwargs["normalizer_filename"],
+            data_roots=[r.path for r in _SUTUREBOT_FAMILY.roots],
+        )
+    ),
+)
