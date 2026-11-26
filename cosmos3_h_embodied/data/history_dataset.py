@@ -53,38 +53,14 @@ def anchored_history(state, action, history_length, arm_specs, pose_source="stat
     )
 
 
-def mask_older_history_rows(history: torch.Tensor) -> torch.Tensor:
-    """Keep every history row and zero all but the newest.
-
-    The row count stays put, including a short suffix at an episode start.
-    An empty history and a single row are returned unchanged.
-    """
-    if not isinstance(history, torch.Tensor) or history.ndim != 2:
-        raise ValueError("history rows must be a 2D tensor")
-    kept = history.clone()
-    if kept.shape[0] > 1:
-        kept[:-1] = 0
-    return kept
-
-
 class _HistoryMixin:
-    def __init__(
-        self,
-        *args,
-        num_history_actions: int = 0,
-        fixed_instruction: str | None = None,
-        mask_older_history: bool = False,
-        **kwargs,
-    ):
+    def __init__(self, *args, num_history_actions: int = 0, fixed_instruction: str | None = None, **kwargs):
         if fixed_instruction is not None and (not isinstance(fixed_instruction, str) or not fixed_instruction.strip()):
             raise ValueError("fixed instruction must be a nonempty decision-time instruction")
         self._fixed_instruction = fixed_instruction
         if isinstance(num_history_actions, bool) or num_history_actions not in (0, 16):
             raise ValueError("history datasets support num_history_actions=0 or 16")
-        if not isinstance(mask_older_history, bool):
-            raise ValueError("mask_older_history must be a bool")
         self._num_history_actions = num_history_actions
-        self._mask_older_history = mask_older_history
         self._sample_history = None
         super().__init__(*args, **kwargs)
         if self._pose_convention != "backward_anchored_world_trans":
@@ -142,10 +118,7 @@ class _HistoryMixin:
         # Fetch/build run serially in each dataset worker, including CMR's
         # tabular preflight and second fetch of the same accepted video window.
         if self._sample_history is not None:
-            history = self._sample_history
-            if self._mask_older_history:
-                history = mask_older_history_rows(history)
-            result["history_action"] = history
+            result["history_action"] = self._sample_history
         return result
 
 
