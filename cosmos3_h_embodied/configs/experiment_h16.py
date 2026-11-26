@@ -309,11 +309,14 @@ _SUTUREBOT = dict(
     include_nonpublic=True, caption_prefix_mode="fixed", families=["suturebot_oshri"], shard_across_workers=False
 )
 _SUTUREBOT_FAMILY = next(f for f in FAMILIES if f.name == "suturebot_oshri")
-for _name in ("suturebot-h16", "suturebot-h16-smoke"):
+for _name in ("suturebot-h16", "suturebot-h16-smoke", "suturebot-history-mask"):
+    _loader = dict(_SUTUREBOT)
+    if _name == "suturebot-history-mask":
+        _loader["mask_older_history"] = True
     register_experiment(
         _name,
-        **_SUTUREBOT,
-        dataloader_val=h16_dataloader(**_SUTUREBOT, augment=False, num_workers=4, prefetch_factor=2, split="val"),
+        **_loader,
+        dataloader_val=h16_dataloader(**_loader, augment=False, num_workers=4, prefetch_factor=2, split="val"),
         callbacks=dict(
             repro=L(ReproRecordCallback)(
                 normalizer=_SUTUREBOT_FAMILY.kwargs["normalizer_filename"],

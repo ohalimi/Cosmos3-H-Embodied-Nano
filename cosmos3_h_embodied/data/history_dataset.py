@@ -54,7 +54,13 @@ def anchored_history(state, action, history_length, arm_specs, pose_source="stat
 
 
 class _HistoryMixin:
-    def __init__(self, *args, num_history_actions: int = 0, fixed_instruction: str | None = None, **kwargs):
+    def __init__(
+        self, *args, num_history_actions: int = 0, fixed_instruction: str | None = None,
+        mask_older_history: bool = False, **kwargs,
+    ):
+        if mask_older_history and num_history_actions != 16:
+            raise ValueError("mask_older_history requires the H16 layout")
+        self._mask_older_history = mask_older_history
         if fixed_instruction is not None and (not isinstance(fixed_instruction, str) or not fixed_instruction.strip()):
             raise ValueError("fixed instruction must be a nonempty decision-time instruction")
         self._fixed_instruction = fixed_instruction
@@ -96,7 +102,11 @@ class _HistoryMixin:
             history = self._compute_history(past, h - start)
             if not torch.isfinite(history).all():
                 raise RuntimeError("nonfinite causal history")
-            self._sample_history = self._normalize_action(history)
+            history = self._normalize_action(history)
+            if self._mask_older_history and len(history) > 1:
+                # Mask values in model space, not timestamps or token slots.
+                history = torch.cat((torch.zeros_like(history[:-1]), history[-1:]))
+            self._sample_history = history
             # Parent filtering and target construction see byte-identical future
             # tensors; scalar frame/episode IDs and all video queries stay intact.
             sample = dict(sample)
