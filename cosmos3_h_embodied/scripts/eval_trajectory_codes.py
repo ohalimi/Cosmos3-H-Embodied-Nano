@@ -68,6 +68,9 @@ def main():
         _, other, donor_key = windows[(i+1) % len(windows)]
         assert key[:2] != donor_key[:2]
         donor = other['action'][0, :3, :20].clone()
+        # The typed sample requires an output directory during construction,
+        # before the three conditions receive their distinct destination paths.
+        sa.output_dir = dest / str(i)
         base = sa.build_sample(model_config=pipe.model_config)
         def generate(label, candidate, seed):
             a = base.model_copy(deep=True, update={'output_dir': dest/str(i)/str(seed)/label, 'seed':seed})
