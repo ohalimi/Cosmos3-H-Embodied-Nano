@@ -329,23 +329,40 @@ _SUTUREBOT_ROOTS = (
     "jhu/imerse/wound_closure/point_labeled/fausto_0_1_jesse_0_1_2_labeled",
     "jhu/hf_suturebot",
 )
-_TWO_ROOTS = dict(
-    families=["dvrk_jhu", "dvrk_suturebot_mono"], root_allowlist=_SUTUREBOT_ROOTS,
-    include_nonpublic=True, caption_prefix_mode="fixed",
+_SHARED_FAMILIES = ("dvrk_jhu", "dvrk_suturebot_mono")
+_ADDED_FAMILIES = (
+    "cmr_clinical", "dvrk_obuda", "dvrk_ucsd", "dvrk_stanford", "dvrk_rob_surgical",
+    "dvrk_hamlyn", "dvrk_ucberkeley", "turin_mitic", "dvrk_tud_grasping_retraction", "dvrk_smarts",
 )
-nano_h16_suturebot = _experiment(
-    "nano-h16-suturebot", **_TWO_ROOTS, lr_schedule="as_trained",
-    dataloader_val=h16_dataloader(**_TWO_ROOTS, augment=False, split="val", num_workers=4, prefetch_factor=2),
-    callbacks=dict(
-        nano_ema=L(InitEmaFromNano)(),
-        repro=L(ReproRecordCallback)(
-            normalizer=[f.kwargs["normalizer_filename"] for f in FAMILIES if f.name in _TWO_ROOTS["families"]],
-            data_roots=list(_SUTUREBOT_ROOTS),
+# Select from the recipe, never by scanning a directory. Only the shared mono root is nonpublic.
+_CONTROL_ROOTS = _SUTUREBOT_ROOTS + tuple(
+    r.path for f in FAMILIES if f.name in ("dvrk_jhu", *_ADDED_FAMILIES)
+    for r in f.roots if r.public and r.path not in _SUTUREBOT_ROOTS
+)
+
+
+def _nano_h16(name: str, families: tuple[str, ...], roots: tuple[str, ...]) -> LazyDict:
+    mixture = dict(families=list(families), root_allowlist=roots, include_nonpublic=True, caption_prefix_mode="fixed")
+    cfg = _experiment(
+        name, **mixture, lr_schedule="as_trained",
+        dataloader_val=h16_dataloader(**mixture, augment=False, split="val", num_workers=4, prefetch_factor=2),
+        callbacks=dict(
+            nano_ema=L(InitEmaFromNano)(),
+            repro=L(ReproRecordCallback)(
+                normalizer=[f.kwargs["normalizer_filename"] for f in FAMILIES if f.name in families],
+                data_roots=list(roots),
+            ),
         ),
-    ),
+    )
+    cfg.checkpoint.keys_to_skip_loading = ["net_ema."]
+    cfg.trainer.grad_accum_iter = 1
+    cfg.trainer.run_validation = True
+    cfg.trainer.run_validation_on_start = True
+    cs.store(group="experiment", package="_global_", name=name, node=cfg)
+    return cfg
+
+
+nano_h16_suturebot = _nano_h16("nano-h16-suturebot", _SHARED_FAMILIES, _SUTUREBOT_ROOTS)
+nano_h16_suturebot_families = _nano_h16(
+    "nano-h16-suturebot-families", _SHARED_FAMILIES + _ADDED_FAMILIES, _CONTROL_ROOTS,
 )
-nano_h16_suturebot.checkpoint.keys_to_skip_loading = ["net_ema."]
-nano_h16_suturebot.trainer.grad_accum_iter = 1
-nano_h16_suturebot.trainer.run_validation = True
-nano_h16_suturebot.trainer.run_validation_on_start = True
-cs.store(group="experiment", package="_global_", name="nano-h16-suturebot", node=nano_h16_suturebot)
