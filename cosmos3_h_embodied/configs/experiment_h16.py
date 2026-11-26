@@ -17,6 +17,7 @@ released weights with ``tools/convert_checkpoint_to_dcp.py``). Data paths come f
 from __future__ import annotations
 
 import copy
+from dataclasses import replace
 from pathlib import Path
 
 import cosmos_framework
@@ -341,15 +342,27 @@ _CONTROL_ROOTS = _SUTUREBOT_ROOTS + tuple(
 )
 
 
-def _nano_h16(name: str, families: tuple[str, ...], roots: tuple[str, ...]) -> LazyDict:
-    mixture = dict(families=list(families), root_allowlist=roots, include_nonpublic=True, caption_prefix_mode="fixed")
+# Preserve the original JHU dataset/normalizer/captions, but give its five other
+# public roots their own rank allocation instead of mixing them with wound closure.
+_CONTROL_SPECS = tuple(
+    spec for f in FAMILIES for spec in (
+        (replace(f, roots=tuple(r for r in f.roots if r.path == _SUTUREBOT_ROOTS[0])),
+         replace(f, name="dvrk_jhu_other", roots=tuple(r for r in f.roots if r.public and r.path != _SUTUREBOT_ROOTS[0])))
+        if f.name == "dvrk_jhu" else (f,)
+    )
+)
+
+
+def _nano_h16(name: str, families: tuple[str, ...], roots: tuple[str, ...], *, family_specs=FAMILIES) -> LazyDict:
+    mixture = dict(families=list(families), root_allowlist=roots, family_specs=family_specs,
+                   include_nonpublic=True, caption_prefix_mode="fixed")
     cfg = _experiment(
         name, **mixture, lr_schedule="as_trained",
         dataloader_val=h16_dataloader(**mixture, augment=False, split="val", num_workers=4, prefetch_factor=2),
         callbacks=dict(
             nano_ema=L(InitEmaFromNano)(),
             repro=L(ReproRecordCallback)(
-                normalizer=[f.kwargs["normalizer_filename"] for f in FAMILIES if f.name in families],
+                normalizer=[f.kwargs["normalizer_filename"] for f in family_specs if f.name in families],
                 data_roots=list(roots),
             ),
         ),
@@ -364,5 +377,6 @@ def _nano_h16(name: str, families: tuple[str, ...], roots: tuple[str, ...]) -> L
 
 nano_h16_suturebot = _nano_h16("nano-h16-suturebot", _SHARED_FAMILIES, _SUTUREBOT_ROOTS)
 nano_h16_suturebot_families = _nano_h16(
-    "nano-h16-suturebot-families", _SHARED_FAMILIES + _ADDED_FAMILIES, _CONTROL_ROOTS,
+    "nano-h16-suturebot-families", _SHARED_FAMILIES + ("dvrk_jhu_other",) + _ADDED_FAMILIES, _CONTROL_ROOTS,
+    family_specs=_CONTROL_SPECS,
 )

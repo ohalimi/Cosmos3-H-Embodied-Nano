@@ -322,6 +322,7 @@ def build_dataset_entries(
     resolution: str = "256",
     families: list[str] | None = None,
     root_allowlist: tuple[str, ...] | None = None,
+    family_specs: tuple[Family, ...] = FAMILIES,
     **dataset_overrides: Any,
 ) -> list:
     """``dataset_entry`` lazy configs for every family of the mixture.
@@ -334,9 +335,10 @@ def build_dataset_entries(
         resolution: Resolution tier of every family.
         families: Only these families (default: all except the opt-in ones).
         root_allowlist: If supplied, keep exactly these relative roots within the selected families.
+        family_specs: Recipe-specific root groups; defaults to the released family definitions.
         dataset_overrides: Extra keyword arguments for every dataset (e.g. ``max_windows``).
     """
-    unknown = set(families or []) - {f.name for f in FAMILIES}
+    unknown = set(families or []) - {f.name for f in family_specs}
     if unknown:
         raise ValueError(f"unknown families {sorted(unknown)}")
     allowed = None if root_allowlist is None else set(root_allowlist)
@@ -344,7 +346,7 @@ def build_dataset_entries(
         raise ValueError("root_allowlist cannot be empty")
     found = set()
     entries = []
-    for family in FAMILIES:
+    for family in family_specs:
         selected = family.name in families if families is not None else not family.opt_in
         if not selected:
             continue
