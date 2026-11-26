@@ -32,13 +32,18 @@ def load_runs(runs: list[Path]) -> dict[tuple[str, str, str], list[dict]]:
     for run in runs:
         for path in sorted(run.rglob("metrics.json")):
             family, mode, index = path.parts[-4:-1]
-            samples[(family, mode, index)].append({**json.loads(path.read_text()), "dir": path.parent})
+            samples[(family, mode, index)].append(
+                {**json.loads(path.read_text()), "dir": path.parent}
+            )
     return samples
 
 
 def baseline_mse(sample_dirs: list[Path]) -> float:
     """MSE of predicting the mean recorded trajectory of these samples (``gt_action.json``, scored rows)."""
-    gts = [np.asarray(json.loads((d / "gt_action.json").read_text()), dtype=np.float64) for d in sample_dirs]
+    gts = [
+        np.asarray(json.loads((d / "gt_action.json").read_text()), dtype=np.float64)
+        for d in sample_dirs
+    ]
     if not gts or len({g.shape for g in gts}) != 1:
         return float("nan")
     g = np.stack(gts)
@@ -67,8 +72,14 @@ def summarize(samples: dict[tuple[str, str, str], list[dict]]) -> dict[str, dict
                     policy_dirs[family].append(runs[0]["dir"])
     out: dict[str, dict] = {}
     for key, row in rows.items():
-        out[key] = {name: float(np.mean(values)) for name, values in row.items() if name != "policy_runs"}
-        out[key]["samples"] = max((len(v) for n, v in row.items() if n != "policy_runs"), default=0)
+        out[key] = {
+            name: float(np.mean(values))
+            for name, values in row.items()
+            if name != "policy_runs"
+        }
+        out[key]["samples"] = max(
+            (len(v) for n, v in row.items() if n != "policy_runs"), default=0
+        )
         out[key]["policy_runs"] = int(min(row["policy_runs"], default=0))
     families = [k for k in out if k != "All"]
     for family in families:
@@ -76,8 +87,63 @@ def summarize(samples: dict[tuple[str, str, str], list[dict]]) -> dict[str, dict
     if "All" in out:
         weights = [len(policy_dirs[f]) for f in families]
         values = [out[f]["baseline_mse"] for f in families]
-        out["All"]["baseline_mse"] = float(np.average(values, weights=weights)) if sum(weights) else float("nan")
+        out["All"]["baseline_mse"] = (
+            float(np.average(values, weights=weights)) if sum(weights) else float("nan")
+        )
     return dict(sorted(out.items(), key=lambda kv: (kv[0] == "All", kv[0])))
+
+
+def seed_spread(
+    by_seed: list[dict], families: set[str], clips: int = 64
+) -> dict[str, dict]:
+    """Policy means per seed (in input order), only for a complete matched all-modes evaluation."""
+    if len(by_seed) != 4:
+        raise ValueError("expected the joint seed followed by three policy seeds")
+    output = {
+        f: {"policy_mse": [], "policy_psnr": []} for f in sorted(families | {"All"})
+    }
+    expected = {(f, i) for f, mode, i in by_seed[0] if mode == "wam"}
+    for family in families:
+        if sum(f == family for f, _ in expected) != clips:
+            raise ValueError(f"seed 0: expected {clips} clips of {family}")
+    if {f for f, _ in expected} != families:
+        raise ValueError("seed 0: unexpected families")
+    truth = {}
+    for s, samples in enumerate(by_seed):
+        modes = ("wam", "forward_dynamics", "inverse_dynamics") if s == 0 else ("wam",)
+        if samples.keys() != {(f, m, i) for f, i in expected for m in modes}:
+            raise ValueError(f"seed {s}: wrong clip/mode coverage")
+        per_family = defaultdict(list)
+        for (f, mode, i), runs in sorted(samples.items()):
+            if len(runs) != 1:
+                raise ValueError(f"seed {s}: duplicate {f}/{mode}/{i}")
+            row = runs[0]
+            keys = {
+                "wam": ("action_mse", "psnr"),
+                "forward_dynamics": ("psnr",),
+                "inverse_dynamics": ("action_mse",),
+            }
+            if not all(np.isfinite(row[k]) for k in keys[mode]):
+                raise ValueError(f"seed {s}: nonfinite {f}/{mode}/{i}")
+            if mode == "wam":
+                gt = np.asarray(json.loads((row["dir"] / "gt_action.json").read_text()))
+                if s == 0:
+                    truth[f, i] = gt
+                if (
+                    not gt.size
+                    or not np.isfinite(gt).all()
+                    or not np.array_equal(gt, truth[f, i])
+                ):
+                    raise ValueError(
+                        f"seed {s}: invalid or changed ground truth for {f}/{i}"
+                    )
+                for name in (f, "All"):
+                    per_family[name].append((row["action_mse"], row["psnr"]))
+        for name, values in per_family.items():
+            mse, psnr = np.mean(values, axis=0)
+            output[name]["policy_mse"].append(float(mse))
+            output[name]["policy_psnr"].append(float(psnr))
+    return output
 
 
 def write_table(summary: dict[str, dict], path: Path) -> None:
@@ -106,11 +172,34 @@ def write_table(summary: dict[str, dict], path: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--runs", type=Path, nargs="+", required=True, help="eval.py output directories (one per seed)")
+    parser.add_argument(
+        "--runs",
+        type=Path,
+        nargs="+",
+        required=True,
+        help="eval.py output directories (one per seed)",
+    )
     parser.add_argument("-o", "--output", type=Path, required=True)
+    parser.add_argument(
+        "--all-modes-families",
+        nargs="+",
+        help="Validate 64 clips per listed family and four seeds "
+        "(joint first), and write the per-seed policy means",
+    )
     args = parser.parse_args()
+    spread = None
+    if args.all_modes_families:
+        spread = seed_spread(
+            [load_runs([r]) for r in args.runs], set(args.all_modes_families)
+        )
     summary = summarize(load_runs(args.runs))
     args.output.mkdir(parents=True, exist_ok=True)
+    if spread is not None:
+        # A non-finite baseline (e.g. inconsistent GT shapes) is not a valid release result.
+        json.dumps(summary, allow_nan=False)
+        (args.output / "policy_seeds.json").write_text(
+            json.dumps(spread, indent=2, allow_nan=False) + "\n"
+        )
     (args.output / "eval_summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     write_table(summary, args.output / "eval_summary.md")
     print((args.output / "eval_summary.md").read_text())

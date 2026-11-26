@@ -15,10 +15,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "benchmar
 from summarize_eval import load_runs, summarize  # noqa: E402
 
 
-def _sample(run: Path, mode: str, index: int, gt: list[list[float]] | None = None, **metrics: float) -> None:
+def _sample(
+    run: Path,
+    mode: str,
+    index: int,
+    gt: list[list[float]] | None = None,
+    **metrics: float,
+) -> None:
     d = run / "fam" / "fam" / mode / str(index)
     d.mkdir(parents=True)
-    (d / "metrics.json").write_text(json.dumps({"mode": mode, "name": str(index), **metrics}))
+    (d / "metrics.json").write_text(
+        json.dumps({"mode": mode, "name": str(index), **metrics})
+    )
     if gt is not None:
         (d / "gt_action.json").write_text(json.dumps(gt))
 
@@ -40,3 +48,38 @@ def test_policy_best_of_seeds_and_baseline(tmp_path: Path) -> None:
     assert fam["policy_psnr_best"] == pytest.approx((19.0 + 17.0) / 2)
     assert fam["policy_runs"] == 2 and fam["baseline_mse"] == pytest.approx(1.0)
     assert list(summary) == ["fam", "All"]
+
+
+def test_seed_spread_requires_matched_complete_runs(tmp_path: Path) -> None:
+    from summarize_eval import seed_spread
+
+    runs = [tmp_path / f"seed{i}" for i in range(4)]
+    for i, run in enumerate(runs):
+        for index in (0, 10):
+            _sample(
+                run,
+                "wam",
+                index,
+                gt=[[float(index)]],
+                action_mse=index + i,
+                psnr=20 - i,
+            )
+            if i == 0:
+                _sample(run, "forward_dynamics", index, psnr=25)
+                _sample(run, "inverse_dynamics", index, action_mse=0.01)
+
+    def compute():
+        return seed_spread([load_runs([r]) for r in runs], {"fam"}, 2)
+
+    result = compute()
+    assert result["All"] == result["fam"]
+    assert result["All"]["policy_mse"] == [5, 6, 7, 8]
+    assert result["All"]["policy_psnr"] == [20, 19, 18, 17]
+    gt = runs[2] / "fam/fam/wam/10/gt_action.json"
+    gt.write_text("[[3]]")
+    with pytest.raises(ValueError, match="ground truth"):
+        compute()
+    gt.write_text("[[10.0]]")
+    (gt.parent / "metrics.json").unlink()
+    with pytest.raises(ValueError, match="coverage"):
+        compute()
