@@ -109,3 +109,50 @@ def test_padding_cannot_influence_dictionary_or_commitment():
     assert a.usage()['used_codes'] == a.usage()['perplexity'] == 1
     with pytest.raises(RuntimeError, match='no trained dictionary'):
         EpisodeDictionary().eval()(x, mask)
+
+
+def test_panel_summary_pools_votes_not_centers_or_per_episode_entropies():
+    d = EpisodeDictionary().eval()
+    d.ready.fill_(True)
+    d.centers.fill_(100)
+    d.centers[0].zero_()
+    d.centers[1].fill_(1)
+    d.mass.fill_(1)  # Even a completely warm EMA tells us nothing about these votes.
+    x = torch.zeros(2, 4, 64)
+    x[1].fill_(1)
+    mask = torch.tensor([[1, 1, 1, 0], [1, 0, 0, 0]], dtype=torch.bool)
+    with torch.no_grad():
+        ids = d.assign(x)
+    assert ids.shape == mask.shape
+    votes = ids[mask].bincount(minlength=512)
+    stats = d.summarize_votes(votes)
+    assert stats['valid'] == 4 and stats['used_codes'] == 2
+    assert stats['top_share'] == .75
+    assert stats['perplexity'] == pytest.approx(1/(.75**.75 * .25**.25))
+    with pytest.raises(ValueError):
+        d.summarize_votes(torch.zeros_like(votes))
+    with pytest.raises(RuntimeError, match='training'):
+        d.usage()  # Panel measurement cannot fabricate a training batch.
+
+
+def test_restart_on_hundredth_miss_does_not_give_the_slot_a_vote():
+    d = EpisodeDictionary()
+    d.ready.fill_(True)
+    d.centers.fill_(10)
+    d.centers[0].zero_()
+    d.mass.fill_(1)
+    d.moment.copy_(d.centers)
+    d.age[1] = 98
+    x = torch.full((1, 4, 64), .25, requires_grad=True)
+    mask = torch.tensor([[True, True, True, False]])
+    quantized, penalty = d(x, mask)
+    torch.testing.assert_close(quantized, torch.zeros_like(x))  # pre-update center
+    assert penalty.item() == pytest.approx(.25 * .25**2)
+    quantized.sum().backward()
+    torch.testing.assert_close(x.grad, torch.ones_like(x))
+    assert d.age[1] == 99
+    d(x, mask)
+    assert d.age[1] == 0 and d.mass[1] == 1
+    torch.testing.assert_close(d.centers[1], x[0,0])
+    assert d.usage()['used_codes'] == 1 and d.usage()['valid'] == 3
+    assert d.usage()['ema_used_codes'] == 512

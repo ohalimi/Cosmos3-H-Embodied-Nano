@@ -54,7 +54,11 @@ def fixed_camera_encoder(rgb_shape, proprio_dim):
 
 
 class EpisodeDictionary(nn.Module):
-    """Single-trainer EMA dictionary. Padding never votes; eval never updates."""
+    """Single-trainer codebook. Readout and adaptation are separate operations.
+
+    The five persistent buffers are the checkpoint format. Batch votes are an
+    observation, not learned state: they must never be initialized from EMA mass.
+    """
 
     def __init__(self):
         super().__init__()
@@ -63,52 +67,80 @@ class EpisodeDictionary(nn.Module):
         self.register_buffer('moment', torch.zeros(ENTRIES, HIDDEN))
         self.register_buffer('age', torch.zeros(ENTRIES, dtype=torch.long))
         self.register_buffer('ready', torch.tensor(False))
+        self.register_buffer('batch_votes', None, persistent=False)
 
     @torch.no_grad()
-    def _seed(self, vectors, slots):
-        seeds = vectors[torch.randint(len(vectors), (len(slots),), device=vectors.device)]
-        if len(vectors) < len(slots):
-            seeds = seeds + torch.randn_like(seeds) * (vectors.std() * .01 + 1e-6)
-        self.centers[slots] = self.moment[slots] = seeds
+    def assign(self, hidden):
+        """Return one nearest-center index per state, without any update or RNG."""
+        if not self.ready:
+            raise RuntimeError('no trained dictionary')
+        if hidden.shape[-1] != HIDDEN:
+            raise ValueError('unexpected hidden width')
+        flat = hidden.reshape(-1, HIDDEN).float()
+        return torch.cdist(flat, self.centers).argmin(dim=-1).reshape(hidden.shape[:-1])
+
+    @staticmethod
+    def summarize_votes(votes):
+        """Summarize integer votes from a batch or the sum over a frozen panel."""
+        if votes.shape != (ENTRIES,) or votes.dtype != torch.long or (votes < 0).any():
+            raise ValueError('expected one nonnegative integer count per entry')
+        occupied = votes[votes > 0].double()
+        if not occupied.numel():
+            raise ValueError('no valid votes')
+        n = occupied.sum()
+        freq = occupied / n
+        return {'valid': int(n), 'dictionary_size': ENTRIES, 'used_codes': occupied.numel(),
+                'top_share': freq.max().item(), 'perplexity': (-freq.dot(freq.log())).exp().item()}
+
+    def usage(self):
+        if self.batch_votes is None:
+            raise RuntimeError('no training batch to summarize')
+        return {**self.summarize_votes(self.batch_votes), 'ema_used_codes': int((self.mass > .1).sum())}
+
+    @torch.no_grad()
+    def _populate(self, slots, samples):
+        """Choose seeds from valid data; their unit prior mass is not a vote."""
+        index = torch.randint(samples.size(0), slots.shape, device=samples.device)
+        seeds = samples.index_select(0, index)
+        if samples.size(0) < slots.numel():
+            seeds += torch.randn_like(seeds) * (.01 * samples.std() + 1e-6)
+        self.centers.index_copy_(0, slots, seeds)
+        self.moment.index_copy_(0, slots, seeds)
         self.mass[slots] = 1
         self.age[slots] = 0
 
-    def usage(self):
-        """Summarize the most recent training forward, not padded or reseeded slots."""
-        votes = self.batch_votes
-        p = votes[votes > 0] / votes.sum()
-        return {'used_codes': len(p), 'perplexity': (-(p * p.log()).sum()).exp().item(),
-                'ema_used_codes': int((self.mass > .1).sum()), 'dictionary_size': ENTRIES}
+    @torch.no_grad()
+    def _observe(self, ids, samples):
+        votes = ids.bincount(minlength=ENTRIES)
+        self.batch_votes = votes
+        batch_sum = torch.zeros_like(self.moment).index_add_(0, ids, samples)
+        self.moment.lerp_(batch_sum, .01)
+        self.mass.lerp_(votes.to(self.mass), .01)
+        total = self.mass.sum()
+        smoothed = (self.mass + 1e-5) * (total / (total + ENTRIES * 1e-5))
+        self.centers.copy_(self.moment / smoothed.unsqueeze(1))
+        self.age.add_(1).masked_fill_(votes.ne(0), 0)
+        expired, = torch.where(self.age >= 100)
+        if expired.numel():
+            self._populate(expired, samples)
 
     def forward(self, hidden, valid):
-        x = hidden[valid].detach().float()
-        if not len(x):
+        if valid.dtype != torch.bool or valid.shape != hidden.shape[:-1]:
+            raise ValueError('expected a boolean mask of states')
+        observed = hidden[valid]
+        if not observed.numel():
             raise ValueError('empty episode batch')
-        if not self.ready:
-            if not self.training:
-                raise RuntimeError('no trained dictionary')
-            self._seed(x, torch.arange(ENTRIES, device=x.device))
+        samples = observed.detach().float()
+        if self.training and not self.ready:
+            self._populate(torch.arange(ENTRIES, device=hidden.device), samples)
             self.ready.fill_(True)
-        with torch.no_grad():
-            labels = torch.cdist(hidden.detach().reshape(-1, HIDDEN).float(), self.centers).argmin(1)
-            q = self.centers[labels].reshape_as(hidden).to(hidden.dtype)
-            if self.training:
-                used = labels.view_as(valid)[valid]
-                counts = used.bincount(minlength=ENTRIES).to(self.mass)
-                # Pre-update, non-padding votes. EMA mass includes newly seeded
-                # centers and alone can hide collapse. Keep both definitions.
-                self.batch_votes = counts
-                self.mass.lerp_(counts, .01)
-                sums = torch.zeros_like(self.moment).index_add_(0, used, x)
-                self.moment.lerp_(sums, .01)
-                total = self.mass.sum()
-                divisor = (self.mass + 1e-5) * (total / (total + ENTRIES * 1e-5))
-                self.centers.copy_(self.moment / divisor[:, None])
-                self.age.add_(1).masked_fill_(counts > 0, 0)
-                dead = torch.where(self.age >= 100)[0]
-                if len(dead):
-                    self._seed(x, dead)
-        return hidden + (q - hidden).detach(), .25 * F.mse_loss(hidden[valid], q[valid])
+        ids = self.assign(hidden)
+        # Snapshot the winning vectors before the moving averages change them.
+        selected = self.centers[ids].to(hidden.dtype)
+        if self.training:
+            self._observe(ids[valid], samples)
+        straight_through = hidden + (selected - hidden).detach()
+        return straight_through, .25 * F.mse_loss(observed, selected[valid])
 
 
 class TrajectoryCodes(nn.Module):
