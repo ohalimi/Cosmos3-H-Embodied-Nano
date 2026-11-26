@@ -330,24 +330,32 @@ _SUTUREBOT_ROOTS = (
     "jhu/imerse/wound_closure/point_labeled/fausto_0_1_jesse_0_1_2_labeled",
     "jhu/hf_suturebot",
 )
-_TWO_ROOTS = dict(
-    families=["dvrk_jhu", "dvrk_suturebot_mono"], root_allowlist=_SUTUREBOT_ROOTS,
-    include_nonpublic=True, caption_prefix_mode="fixed",
-)
-nano_h16_suturebot = _experiment(
-    "nano-h16-suturebot", **_TWO_ROOTS, lr_schedule="as_trained",
-    dataloader_val=h16_dataloader(**_TWO_ROOTS, augment=False, split="val", num_workers=4, prefetch_factor=2),
-    callbacks=dict(
-        nano_ema=L(InitEmaFromNano)(),
-        sigma_loss_analysis=dict(_target_=PackedSigmaLossAnalysis),
-        repro=L(ReproRecordCallback)(
-            normalizer=[f.kwargs["normalizer_filename"] for f in FAMILIES if f.name in _TWO_ROOTS["families"]],
-            data_roots=list(_SUTUREBOT_ROOTS),
+
+
+def _two_root_experiment(name: str, *, caption_prefix_mode: str, grad_accum_iter: int) -> LazyDict:
+    roots = dict(
+        families=["dvrk_jhu", "dvrk_suturebot_mono"], root_allowlist=_SUTUREBOT_ROOTS,
+        include_nonpublic=True, caption_prefix_mode=caption_prefix_mode,
+    )
+    node = _experiment(
+        name, **roots, lr_schedule="as_trained",
+        dataloader_val=h16_dataloader(**roots, augment=False, split="val", num_workers=4, prefetch_factor=2),
+        callbacks=dict(
+            nano_ema=L(InitEmaFromNano)(),
+            sigma_loss_analysis=dict(_target_=PackedSigmaLossAnalysis),
+            repro=L(ReproRecordCallback)(
+                normalizer=[f.kwargs["normalizer_filename"] for f in FAMILIES if f.name in roots["families"]],
+                data_roots=list(_SUTUREBOT_ROOTS),
+            ),
         ),
-    ),
-)
-nano_h16_suturebot.checkpoint.keys_to_skip_loading = ["net_ema."]
-nano_h16_suturebot.trainer.grad_accum_iter = 1
-nano_h16_suturebot.trainer.run_validation = True
-nano_h16_suturebot.trainer.run_validation_on_start = True
-cs.store(group="experiment", package="_global_", name="nano-h16-suturebot", node=nano_h16_suturebot)
+    )
+    node.checkpoint.keys_to_skip_loading = ["net_ema."]
+    node.trainer.grad_accum_iter = grad_accum_iter
+    node.trainer.run_validation = True
+    node.trainer.run_validation_on_start = True
+    cs.store(group="experiment", package="_global_", name=name, node=node)
+    return node
+
+
+nano_h16_suturebot = _two_root_experiment("nano-h16-suturebot", caption_prefix_mode="fixed", grad_accum_iter=1)
+nano_h16_suturebot_ref32 = _two_root_experiment("nano-h16-suturebot-ref32", caption_prefix_mode="legacy", grad_accum_iter=2)
