@@ -163,6 +163,8 @@ class TrajectoryCodes(nn.Module):
 
     def features(self, rgb, proprio, previous_action):
         """Observed image/pose at t, normalized action at t-1 (zero at reset)."""
+        if self.encoder is None:
+            return torch.cat((proprio, previous_action), dim=-1)
         batch, steps = previous_action.shape[:2]
         # Recompute visual activations on backward, not the recurrent history.
         # RNG preservation gives the same crop during the recomputation.

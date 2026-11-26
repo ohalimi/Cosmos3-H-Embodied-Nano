@@ -19,8 +19,13 @@ from cosmos3_h_embodied.data.trajectory_episodes import registered, left_frames,
 from cosmos3_h_embodied.model.trajectory_codes import TrajectoryCodes, fixed_camera_encoder
 
 
+from .trajectory_probes import FACTORS, PROBE_STEPS, action_fit, fixed_panel, mixed_positions
+
+
 class Observations:
-    def __init__(self, dataset, stats):
+    def __init__(self, dataset, stats, camera=True, action_stats=None):
+        self.camera = camera
+        self.action_stats = None if action_stats is None else tuple(torch.tensor(action_stats[k], dtype=torch.float32) for k in ('mean', 'std'))
         self.dataset = dataset
         self.mean = torch.tensor(stats['mean'], dtype=torch.float32)
         self.std = torch.tensor(stats['std'], dtype=torch.float32)
@@ -31,17 +36,22 @@ class Observations:
 
     @lru_cache(maxsize=64)
     def sequence(self, e, phase=0):
-        pose, action = kinematics(e, self.dataset, phase)
+        pose, action = kinematics(e, self.dataset, phase, normalize=self.action_stats is None)
+        if self.action_stats is not None:
+            mean, std = self.action_stats
+            action[:-1] = (action[:-1] - mean) / std
         # Clone the downsample, so the cache does not retain full-rate video.
-        rgb = self.images(e)[phase::e.stride].contiguous()
+        rgb = self.images(e)[phase::e.stride].contiguous() if self.camera else pose.new_empty((len(pose), 0))
         return rgb, (pose - self.mean) / self.std, action
 
-    def batch(self, pool, rng, count, device):
+    def batch(self, pool, rng, count, device, mix_step=None):
         if len(pool) < count:
             chosen = rng.choices(pool, k=count)
         else:
             first = rng.randrange(len(pool) - count + 1)
-            chosen = pool[first:first+count]
+            chosen = (pool[first:first+count] if mix_step is None else
+                      [pool[i] for i in mixed_positions(len(pool), count, first, mix_step)])
+        self.last_root_count = len({e.root for e in chosen})
         rows = [self.sequence(e) for e in chosen]
         lengths = torch.tensor([len(row[0]) for row in rows])
         return (*[pad_sequence(col, batch_first=True).to(device) for col in zip(*rows)], lengths)
@@ -53,7 +63,9 @@ def save_atomic(obj, dest):
     tmp.replace(dest)
 
 
-def construct(window, device):
+def construct(window, device, camera=True):
+    if not camera:
+        return TrajectoryCodes(None, 20, window).to(device)
     return TrajectoryCodes(*fixed_camera_encoder((3, 96, 96), 20), window).to(device)
 
 
@@ -67,18 +79,24 @@ def validation(model, obs, pool, rng, device):
         return model.losses(h, code, commit, pos, anchors, lengths)['reconstruction'].item()
 
 
-def pretrain(config, out, device, log=None):
+def pretrain(config, out, device, log=None, factor=None):
+    if factor is not None and factor not in FACTORS:
+        raise ValueError('unknown diagnostic factor')
     train, tr = registered(config, 'train')
     val, va = registered(config, 'val')
     if {e.key for e in tr} & {e.key for e in va}:
         raise ValueError('overlapping training and validation episode IDs')
     window = max(e.steps for e in tr)
     stats = fit_pose(train, tr)
-    train_obs, val_obs = Observations(train, stats), Observations(val, stats)
+    camera = factor != 'no-camera'
+    scaling = action_fit(train, tr, stats) if factor == 'internal-action-scaling' else None
+    train_obs, val_obs = (Observations(data, stats, camera, scaling) for data in (train, val))
     tr, va = (sorted((e for e in eps if e.steps >= 32), key=lambda e:e.steps) for eps in (tr,va))
     if not tr or not va:
         raise ValueError('no eligible training or validation episodes')
     out.mkdir(parents=True, exist_ok=True)
+    if scaling is not None:
+        (out / 'action-fit.json').write_text(json.dumps(scaling, sort_keys=True, indent=1) + '\n')
     stats_file = out / 'pose-fit.json'
     stats_text = json.dumps(stats, sort_keys=True, indent=1) + '\n'
     if stats_file.exists() and stats_file.read_text() != stats_text:
@@ -87,7 +105,7 @@ def pretrain(config, out, device, log=None):
     config_digest = hashlib.sha256(Path(config).read_bytes()).hexdigest()
     torch.manual_seed(0)
     rng = random.Random(0)
-    model = construct(window, device)
+    model = construct(window, device, camera)
     opt = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
     first, best = 1, float('inf')
     import torch.distributed.checkpoint as dcp
@@ -96,7 +114,7 @@ def pretrain(config, out, device, log=None):
     if latest.exists():
         current = checkpoints / latest.read_text().strip()
         state = torch.load(current/'trainer.pt', map_location='cpu', weights_only=True)
-        if state['config_sha256'] != config_digest or state['pose'] != stats or state['window'] != window:
+        if state.get('factor') != factor or state['config_sha256'] != config_digest or state['pose'] != stats or state['window'] != window:
             raise ValueError('input contract changed on resume')
         weights = model.state_dict()
         dcp.load({'model': weights}, checkpoint_id=current/'model', no_dist=True)
@@ -105,9 +123,9 @@ def pretrain(config, out, device, log=None):
         if device.type == 'cuda':
             torch.cuda.set_rng_state(state['gpu_rng'], device)
         first, best = state['step']+1, state['best']
-    for step in range(first, 20001):
+    for step in range(first, 1001 if factor else 20001):
         model.train()
-        images, pos, act, lengths = train_obs.batch(tr, rng, 8, device)
+        images, pos, act, lengths = train_obs.batch(tr, rng, 8, device, step if factor == 'mixed-root-batches' else None)
         h, code, commit = model(images, pos, act, lengths)
         end = int(lengths.min()) - 1
         lo = min(16, end - 1)
@@ -121,6 +139,10 @@ def pretrain(config, out, device, log=None):
         if step == 1 or step % 50 == 0:
             record = {'step':step, 'train/loss':loss.item(), **{k:v.item() for k,v in terms.items()}}
             record.update(model.dictionary.usage())
+            if factor:
+                record['batch_roots'] = train_obs.last_root_count
+                if step in PROBE_STEPS:
+                    record.update(fixed_panel(model, val_obs, va, step, out))
             print(json.dumps(record), flush=True)
             if log is not None:
                 log(record, step=step)
@@ -128,7 +150,7 @@ def pretrain(config, out, device, log=None):
             score = validation(model, val_obs, va, rng, device)
             if not math.isfinite(score):
                 raise FloatingPointError(f'nonfinite validation reconstruction at step {step}')
-            payload = dict(step=step, window=window, model=model.state_dict(), pose=stats, config_sha256=config_digest, val_reconstruction=score)
+            payload = dict(step=step, factor=factor, window=window, model=model.state_dict(), pose=stats, config_sha256=config_digest, val_reconstruction=score)
             if score < best:
                 best = score
                 save_atomic(payload, out/'best.pt')
@@ -137,7 +159,7 @@ def pretrain(config, out, device, log=None):
             # Publish the pointer only after the trainer and DCP model are complete.
             current = checkpoints / f'iter_{step:09d}'
             current.mkdir(parents=True)
-            save_atomic(dict(step=step, window=window, pose=stats, config_sha256=config_digest,
+            save_atomic(dict(step=step, factor=factor, window=window, pose=stats, config_sha256=config_digest,
                              optimizer=opt.state_dict(), best=best, episode_rng=rng.getstate(),
                              cpu_rng=torch.get_rng_state(), gpu_rng=torch.cuda.get_rng_state(device)
                              if device.type=='cuda' else None), current/'trainer.pt')
@@ -150,6 +172,8 @@ def pretrain(config, out, device, log=None):
 def export(config, out, device):
     path = out/'best.pt'
     payload = torch.load(path, map_location='cpu', weights_only=True)
+    if payload.get('factor') is not None:
+        raise ValueError('diagnostic checkpoints cannot be exported')
     if hashlib.sha256(Path(config).read_bytes()).hexdigest() != payload['config_sha256']:
         raise ValueError('control config differs from training')
     model = construct(payload['window'], device).eval().requires_grad_(False)
@@ -186,5 +210,13 @@ if __name__ == '__main__':
     cli = argparse.ArgumentParser(description=__doc__)
     cli.add_argument('mode', choices=['pretrain','export']); cli.add_argument('--control-config',required=True,type=Path)
     cli.add_argument('--out',required=True,type=Path); cli.add_argument('--device',default='cuda')
-    args = cli.parse_args(); fn = pretrain if args.mode=='pretrain' else export
-    fn(args.control_config, args.out, torch.device(args.device))
+    group = cli.add_mutually_exclusive_group()
+    for name in FACTORS:
+        group.add_argument('--' + name, dest='factor', action='store_const', const=name)
+    args = cli.parse_args()
+    if args.mode == 'pretrain':
+        pretrain(args.control_config, args.out, torch.device(args.device), factor=args.factor)
+    elif args.factor:
+        cli.error('diagnostics are pretrain-only')
+    else:
+        export(args.control_config, args.out, torch.device(args.device))

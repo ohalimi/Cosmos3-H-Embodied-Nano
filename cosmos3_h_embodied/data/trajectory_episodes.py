@@ -120,7 +120,7 @@ def measured(state, ep, dataset):
     return out
 
 
-def kinematics(ep, dataset, phase=0):
+def kinematics(ep, dataset, phase=0, *, normalize=True):
     state, command = (x[phase::ep.stride] for x in raw(ep))
     pose = measured(state, ep, dataset)
     # One executed transition, using the same world-frame delta, relative
@@ -132,7 +132,9 @@ def kinematics(ep, dataset, phase=0):
         delta = np.linalg.inv(m[:-1]) @ m[1:]
         rot = convert_rotation(delta[:, :3, :3], 'matrix', 'rot6d')
         values.extend((np.diff(m[:, :3, 3], axis=0), rot, command[:-1, [s.gripper_col]]))
-    action = dataset._normalize_action(torch.from_numpy(np.concatenate(values, axis=1)))
+    action = torch.from_numpy(np.concatenate(values, axis=1))
+    if normalize:
+        action = dataset._normalize_action(action)
     if not torch.isfinite(action).all():
         raise ValueError(f'invalid action at {ep.key}')
     # Terminal placeholder is never used: the memory consumes action at t-1.
