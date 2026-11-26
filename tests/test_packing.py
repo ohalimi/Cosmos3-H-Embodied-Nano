@@ -15,7 +15,7 @@ def _loader() -> HistoryMatchedJointDataLoader:
     loader = object.__new__(HistoryMatchedJointDataLoader)
     loader.__dict__.update(
         tokenizer_spatial_compression_factor=16, tokenizer_temporal_compression_factor=4, patch_spatial=2,
-        chunk_length=24, max_history_actions=16,
+        chunk_length=24, max_history_actions=16, num_code_rows=0,
     )  # fmt: skip
     return loader
 

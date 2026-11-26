@@ -41,6 +41,15 @@ class HistoryOmniMoTModel(OmniMoTModel):
         with _active_normalized_action_loss(self.rectified_flow_action):
             return super()._compute_losses(*args, **kwargs)
 
+    def validation_step(self, data_batch: dict[str, Any], iteration: int) -> Any:
+        """Return the (output_batch, loss) pair the trainer unpacks.
+
+        OmniMoTModel.validation_step is a stub, so a run with validation on
+        start dies before it can log a validation loss. Validation uses the
+        same loss as training. The trainer already calls this under no_grad.
+        """
+        return self.training_step(data_batch, iteration)
+
 
 @contextlib.contextmanager
 def _active_normalized_action_loss(rectified_flow_action: Any) -> Iterator[None]:

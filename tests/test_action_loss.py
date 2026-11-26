@@ -10,7 +10,7 @@ import re
 
 import cosmos_framework.model.generator.omni_mot_model as cf_omni_mot_model
 
-from cosmos3_h_embodied.model.omni_mot_model import _active_normalized_action_loss
+from cosmos3_h_embodied.model.omni_mot_model import HistoryOmniMoTModel, _active_normalized_action_loss
 
 
 def test_cf_compute_losses_calls_action_loss_as_expected() -> None:
@@ -33,3 +33,20 @@ def test_only_the_action_loss_is_normalized_by_active_rows(monkeypatch) -> None:
         cf.compute_flow_matching_loss(rectified_flow=action_rf, raw_action_dim=[20], normalize_by_active=False)
     cf.compute_flow_matching_loss(rectified_flow=action_rf, raw_action_dim=[20], normalize_by_active=False)
     assert [c["normalize_by_active"] for c in calls] == [False, True, False]
+
+
+def test_validation_step_returns_the_training_pair() -> None:
+    """The trainer unpacks this pair. The base method is a stub and returns None."""
+    sent = object()
+    pair = ({"loss": 1}, sent)
+
+    class _Model(HistoryOmniMoTModel):
+        def __init__(self) -> None:
+            pass
+
+        def training_step(self, data_batch, iteration):  # type: ignore[no-untyped-def]
+            assert data_batch == {"x": 1}
+            assert iteration == 0
+            return pair
+
+    assert _Model().validation_step({"x": 1}, 0) is pair

@@ -25,7 +25,10 @@ class HistoryMatchedJointDataLoader(IterativeJointDataLoader):
     ``H // s`` or ``W // s`` is odd.)
     """
 
-    def __init__(self, *args: Any, chunk_length: int = 24, max_history_actions: int = 16, **kwargs: Any) -> None:
+    def __init__(self, *args: Any, chunk_length: int = 24, max_history_actions: int = 16, num_code_rows: int = 0, **kwargs: Any) -> None:
+        if num_code_rows not in (0, 3):
+            raise ValueError("expected no code or three frozen code rows")
+        self.num_code_rows = num_code_rows
         if chunk_length <= 0 or max_history_actions < 0:
             raise ValueError(f"invalid chunk_length={chunk_length} / max_history_actions={max_history_actions}")
         # Set before super().__init__(), which may prewarm and count tokens.
@@ -58,11 +61,12 @@ class HistoryMatchedJointDataLoader(IterativeJointDataLoader):
         if len(actions) != 1 or actions[0] is None:
             raise ValueError("history-matched packing requires exactly one action-bearing sample")
         num_rows = actions[0].shape[0]
-        budget = self.chunk_length + self.max_history_actions
-        if not self.chunk_length <= num_rows <= budget:
+        min_rows = self.chunk_length + self.num_code_rows
+        budget = min_rows + self.max_history_actions
+        if not min_rows <= num_rows <= budget:
             raise ValueError(
                 f"expected {self.chunk_length} future rows plus at most {self.max_history_actions} history rows, "
-                f"got {num_rows}"
+                f"and {self.num_code_rows} code rows; got {num_rows}"
             )
         gen_tokens += budget
         return und_tokens, gen_tokens

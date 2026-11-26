@@ -79,6 +79,7 @@ def h16_dataloader(
     num_workers: int = 12,
     prefetch_factor: int = 16,
     augment: bool = True,
+    num_code_rows: int = 0,
     **dataset_overrides,
 ) -> LazyDict:
     """The action dataloader of the recipe. ``augment=False`` (validation) turns off video augmentation and
@@ -145,6 +146,7 @@ def h16_dataloader(
         prewarm=True,
         chunk_length=24,
         max_history_actions=16,
+        **({"num_code_rows": num_code_rows} if num_code_rows else {}),
     )
 
 
@@ -321,3 +323,15 @@ for _name in ("suturebot-h16", "suturebot-h16-smoke"):
             )
         ),
     )
+
+# Same train/validation registrations, prompts and H16 context as the control.
+# The launcher pins the complete export; evaluation resolves the same manifest.
+_CODE_DATA = dict(**_SUTUREBOT, frozen_track_manifest="${oc.env:OPENH_TRAJECTORY_MANIFEST}", num_code_rows=3)
+register_experiment(
+    "suturebot-camp",
+    **_CODE_DATA,
+    dataloader_val=h16_dataloader(**_CODE_DATA, augment=False, num_workers=4, prefetch_factor=2, split="val"),
+    callbacks=dict(repro=L(ReproRecordCallback)(
+        normalizer=_SUTUREBOT_FAMILY.kwargs["normalizer_filename"], data_roots=[r.path for r in _SUTUREBOT_FAMILY.roots]
+    )),
+)

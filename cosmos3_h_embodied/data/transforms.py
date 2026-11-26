@@ -251,6 +251,7 @@ def build_sequence_plan_from_mode(
     has_text: bool = True,
     video_temporal_downsample: int = 4,
     num_history_actions: int = 0,
+    num_code_rows: int = 0,
 ) -> SequencePlan:
     """Build the cosmos-framework ``SequencePlan`` for one Open-H training sample.
 
@@ -263,6 +264,7 @@ def build_sequence_plan_from_mode(
         video_length: Number of video frames, including the conditioning frame.
         action_length: Number of action rows, including ``num_history_actions`` prepended
             history rows.
+        num_code_rows: Frozen code rows before the history, always clean.
         has_text: Whether text conditioning is available.
         video_temporal_downsample: Temporal compression of the video tokenizer, used for the
             inverse-dynamics conditioning indexes.
@@ -270,7 +272,7 @@ def build_sequence_plan_from_mode(
             (conditioning) and sit before the first video transition in time.
 
     Returns:
-        The sequence plan. History rows occupy action indexes ``0..num_history_actions-1``.
+        The sequence plan. Frozen codes precede the history rows; neither is a prediction target.
 
     Raises:
         ValueError: For an unknown mode, or if the action:video length ratio is not an integer.
@@ -292,16 +294,17 @@ def build_sequence_plan_from_mode(
     # video_length - 1) or one per frame (== video_length); asymmetric runs use integer
     # multiples of either. The conditioning indexes and the start offset depend only on
     # num_history_actions, not on the multiple.
-    base_action_length = action_length - num_history_actions
+    clean_prefix = num_code_rows + num_history_actions
+    base_action_length = action_length - clean_prefix
     _vlen_m1 = video_length - 1
     if _vlen_m1 > 0 and base_action_length % _vlen_m1 == 0:
         # Transitions convention.
-        condition_frame_indexes_action = list(range(num_history_actions))
-        action_start_frame_offset = 1 - num_history_actions
+        condition_frame_indexes_action = list(range(clean_prefix))
+        action_start_frame_offset = 1 - clean_prefix
     elif video_length > 0 and base_action_length % video_length == 0:
         # Per-frame convention.
-        condition_frame_indexes_action = list(range(num_history_actions + 1))
-        action_start_frame_offset = -num_history_actions
+        condition_frame_indexes_action = list(range(clean_prefix + 1))
+        action_start_frame_offset = -clean_prefix
     else:
         raise ValueError(
             f"action_length={action_length}, video_length={video_length}, "
@@ -682,12 +685,20 @@ class ActionTransformPipeline:
             action = torch.cat([history_action, action], dim=0)
             action_length += num_history_actions
 
+        code = data_dict.pop("trajectory_code", None)
+        if code is not None:
+            if history_action is None or code.shape != (3, 20) or action.shape[1] != 20:
+                raise ValueError("expected three 20D trajectory rows before H16 history")
+            action = torch.cat((code.to(action), action))
+            action_length += len(code)
+
         sequence_plan = build_sequence_plan_from_mode(
             mode=mode,
             video_length=video_length,
             action_length=action_length,
             video_temporal_downsample=self.video_temporal_downsample,
             num_history_actions=num_history_actions,
+            num_code_rows=0 if code is None else len(code),
         )
         data_dict["sequence_plan"] = sequence_plan
 

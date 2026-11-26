@@ -123,6 +123,34 @@ class _HistoryMixin:
 
 
 class GeneralizedDvrkHistoryDataset(_HistoryMixin, GeneralizedDvrkLeRobotDataset):
+    def __init__(self, *args, frozen_track_manifest=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._tracks = None
+        if frozen_track_manifest is not None:
+            from cosmos3_h_embodied.data.frozen_tracks import FrozenTracks
+
+            if self._num_history_actions != 16:
+                raise ValueError("frozen trajectory codes require H16")
+            self._tracks = FrozenTracks(frozen_track_manifest, self._split)
+
+    def _fetch_sample(self, idx, **kwargs):
+        mode, dataset_idx, row_idx, sample = super()._fetch_sample(idx, **kwargs)
+        if self._tracks is not None:
+            self._code_key = (sample[SHARD_ROOT_KEY], int(sample["episode_index"]), int(sample["frame_index"]))
+            try:
+                self._code_rows = self._tracks.at(*self._code_key)
+            except (KeyError, OSError, IndexError, ValueError) as exc:
+                # Do not let the parent treat a broken export as a video failure
+                # and replace this decision window with a different one.
+                raise AssertionError(f"invalid frozen trajectory at {self._code_key}") from exc
+        return mode, dataset_idx, row_idx, sample
+
+    def _build_result(self, **kwargs):
+        result = super()._build_result(**kwargs)
+        if self._tracks is not None:
+            result["trajectory_code"] = self._code_rows
+        return result
+
     def _load_known_bad_samples(self):
         # A shared append-only audit changes while workers start. Reading it
         # lazily gave H0/H16 different initial skip sets despite identical RNG
