@@ -2,7 +2,7 @@
 
 ## `suturebot-camp-pretrain` — slides 26 and 27
 
-**State:** running; step 1,750 logged locally (Forge summary 1,700 at 15:15 PT on 2026-11-26), cap 20,000. Slurm job **443703**. No completed checkpoint gate or downstream result yet.
+**State:** running; step 1,850 logged locally (Forge 1,800 at 2026-11-26 15:29 PT), cap 20,000. Slurm job **443703**. No selected-checkpoint gate verdict or downstream result yet.
 
 - Branch `ohalimi/suturebot-camp`, clean code commit `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff. The later dictionary readout rebuild at `c35b0c0d633b3e21a5954cb20a2ddde0ecadd2b9` is **not** the training revision.
 - W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / 9qq6q9tb` ([run and reproduction files](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/9qq6q9tb)).
@@ -18,3 +18,28 @@
 - **Not reproducible from git by request.** Reference commit `8347c01eb179d86a12f312dc522ace41bacf6c10`; the diagnostic adapter was uncommitted, not part of the public branch. Reader from `ohalimi/suturebot-camp` at `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`; same framework environment as the pretrain. No internal source or patch is included here.
 - W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / 3fo9nx2h` ([diagnostic run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/3fo9nx2h)). Results and adapter checksums: Drive `open-h-remote-agent / status / 2026-11-26T1513-arm-c-internal-diagnostic / internal-diagnostic.txt` (results-only packet).
 - Launch: `sbatch <project-root>/<verified-diagnostic-launch-script>`; executed SHA-256 `a896f6ae3ae8cdee73cfc0506ec03d7eb1c9b7d6e008764d95bf90ecadc12dd0`. Registered-split adapter, training mode, `--steps 1000 --device cuda`; fresh initialization, seed 0; same seven roots, split manifest and pose fit as above. Frozen panel at 600, 800 and 1,000; no diffusion sampling or guidance. The 461-winner diagnostic criterion was not met. This is not a fine-tune result or a decision about the pretrain's eventual export.
+
+## Pinpoint runs — diagnostic protocol
+
+These are controlled pretraining diagnostics, not policy runs or candidates for track release. Use the seven registered roots, split manifest, control configuration, 200 training episodes, fresh initialization and seed 0 listed for job 443703. Each uses the clean public rebuild, changes one factor, stops at step 1,000 and does not export. At 600, 800 and 1,000, read 512 assignment counts on CPU from the identical phase-zero validation panel described above. No sampling steps or guidance. W&B files include the launcher, resolved control and (after completion) the three histograms. Job 443703 saved no 600/800 weights or panel summaries; do not substitute a batch metric at those steps.
+
+## `suturebot-camp-mixed-root-batches-1k` — slide 27 diagnostic
+
+**State:** running at step 0; job **445349**. Forge running, step 0.
+
+- Branch `ohalimi/suturebot-camp`, commit `193c90b64f870f068f711f711d2bd653dff717aa`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. Clean; no diff. W&B `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / 3f8e443e` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/3f8e443e)).
+- Launch: `sbatch <project-root>/<verified-launch-script>`, executed SHA-256 `442424a8ea9ef86094f94830c944b1b3d31fde9fa8c0ba94e27c0110258cdf9f`. Underlying training command: `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --mixed-root-batches` with the online logger. Data, model seed, start, panel and probe cadence as above.
+
+## `suturebot-camp-no-camera-1k` — slide 27 diagnostic
+
+**State:** running at step 50; job **445351**. Forge running, step 0.
+
+- Branch `ohalimi/suturebot-camp`, commit `193c90b64f870f068f711f711d2bd653dff717aa`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. Clean; no diff. W&B `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / 219576a3` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/219576a3)).
+- Launch: `sbatch <project-root>/<verified-launch-script>`, executed SHA-256 `9f6c889447ea8720665dacacdccfbf7a4a51eaeb8fa2473626000662cf6dd1b0`. Underlying training command: `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --no-camera` with the online logger. Data, model seed, start, panel and probe cadence as above.
+
+## `suturebot-camp-internal-action-scaling-1k` — slide 27 diagnostic
+
+**State:** running at step 0; job **445353**. Forge running, step 0.
+
+- Branch `ohalimi/suturebot-camp`, commit `193c90b64f870f068f711f711d2bd653dff717aa`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. Clean; no diff. W&B `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / ed014e63` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/ed014e63)).
+- Launch: `sbatch <project-root>/<verified-launch-script>`, executed SHA-256 `6a7786547d9a179c75707be7ab5e3b800c3a5b26f7dd11bd4cb43d9e615572f9`. Underlying training command: `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --internal-action-scaling` with the online logger. Data, model seed, start, panel and probe cadence as above.
