@@ -25,6 +25,7 @@ from hydra.core.config_store import ConfigStore
 
 from cosmos3_h_embodied.callbacks.action_dataloader_state import ActionDataLoaderStateCallback
 from cosmos3_h_embodied.callbacks.nano_warm_start import InitEmaFromNano
+from cosmos3_h_embodied.callbacks.packed_sigma_loss import PackedSigmaLossAnalysis
 from cosmos3_h_embodied.callbacks.repro_record import ReproRecordCallback
 from cosmos3_h_embodied.configs.openh_datasets import FAMILIES, build_dataset_entries
 from cosmos3_h_embodied.data.dataloaders import InfiniteDataLoader
@@ -338,6 +339,7 @@ nano_h16_suturebot = _experiment(
     dataloader_val=h16_dataloader(**_TWO_ROOTS, augment=False, split="val", num_workers=4, prefetch_factor=2),
     callbacks=dict(
         nano_ema=L(InitEmaFromNano)(),
+        sigma_loss_analysis=dict(_target_=PackedSigmaLossAnalysis),
         repro=L(ReproRecordCallback)(
             normalizer=[f.kwargs["normalizer_filename"] for f in FAMILIES if f.name in _TWO_ROOTS["families"]],
             data_roots=list(_SUTUREBOT_ROOTS),
