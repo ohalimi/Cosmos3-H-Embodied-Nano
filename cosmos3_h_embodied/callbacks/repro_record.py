@@ -40,7 +40,7 @@ class ReproRecordCallback(Callback):
         data_roots: Dataset roots of the run, relative to ``OPENH_DATA_ROOT``.
     """
 
-    def __init__(self, normalizer: str, data_roots: list[str]) -> None:
+    def __init__(self, normalizer: str | list[str], data_roots: list[str]) -> None:
         super().__init__()
         self.normalizer = normalizer
         self.data_roots = list(data_roots)
@@ -84,7 +84,11 @@ class ReproRecordCallback(Callback):
             "repro/dirty": bool(diff),
             "repro/command": read("command.txt"),
             "repro/sbatch_sha256": read("sbatch.sha256").split(" ", 1)[0],
-            "repro/normalizer_sha256": hashlib.sha256((NORMALIZER_DIR / self.normalizer).read_bytes()).hexdigest(),
+            "repro/normalizer_sha256": (
+                hashlib.sha256((NORMALIZER_DIR / self.normalizer).read_bytes()).hexdigest()
+                if isinstance(self.normalizer, str) else
+                {name: hashlib.sha256((NORMALIZER_DIR / name).read_bytes()).hexdigest() for name in self.normalizer}
+            ),
             "repro/data_roots": self.data_roots,
             "repro/seed": self.config.trainer.seed,
             "repro/load_checkpoint": Path(str(self.config.checkpoint.load_path or "")).name,

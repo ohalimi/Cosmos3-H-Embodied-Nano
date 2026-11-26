@@ -321,6 +321,7 @@ def build_dataset_entries(
     caption_prefix_mode: str = "fixed",
     resolution: str = "256",
     families: list[str] | None = None,
+    root_allowlist: tuple[str, ...] | None = None,
     **dataset_overrides: Any,
 ) -> list:
     """``dataset_entry`` lazy configs for every family of the mixture.
@@ -332,17 +333,23 @@ def build_dataset_entries(
             (the caption contexts the released checkpoint was trained with).
         resolution: Resolution tier of every family.
         families: Only these families (default: all except the opt-in ones).
+        root_allowlist: If supplied, keep exactly these relative roots within the selected families.
         dataset_overrides: Extra keyword arguments for every dataset (e.g. ``max_windows``).
     """
     unknown = set(families or []) - {f.name for f in FAMILIES}
     if unknown:
         raise ValueError(f"unknown families {sorted(unknown)}")
+    allowed = None if root_allowlist is None else set(root_allowlist)
+    if allowed == set():
+        raise ValueError("root_allowlist cannot be empty")
+    found = set()
     entries = []
     for family in FAMILIES:
         selected = family.name in families if families is not None else not family.opt_in
         if not selected:
             continue
-        roots = [r for r in family.roots if include_nonpublic or r.public]
+        roots = [r for r in family.roots if (include_nonpublic or r.public) and (allowed is None or r.path in allowed)]
+        found.update(r.path for r in roots)
         if not roots:
             continue
         kwargs = {**COMMON_KWARGS, **family.kwargs, **dataset_overrides}
@@ -354,4 +361,6 @@ def build_dataset_entries(
         entries.append(
             L(dataset_entry)(name=family.name, ratio=family.ratio, resolution=resolution, dataset=L(family.cls)(**kwargs))
         )
+    if allowed is not None and allowed - found:
+        raise ValueError(f"unavailable roots in root_allowlist: {sorted(allowed - found)}")
     return entries

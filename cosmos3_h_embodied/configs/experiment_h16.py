@@ -24,6 +24,7 @@ import cosmos_framework
 from hydra.core.config_store import ConfigStore
 
 from cosmos3_h_embodied.callbacks.action_dataloader_state import ActionDataLoaderStateCallback
+from cosmos3_h_embodied.callbacks.nano_warm_start import InitEmaFromNano
 from cosmos3_h_embodied.callbacks.repro_record import ReproRecordCallback
 from cosmos3_h_embodied.configs.openh_datasets import FAMILIES, build_dataset_entries
 from cosmos3_h_embodied.data.dataloaders import InfiniteDataLoader
@@ -321,3 +322,30 @@ for _name in ("suturebot-h16", "suturebot-h16-smoke"):
             )
         ),
     )
+
+# Train from Nano rather than continuing from the released embodied weights. Keep
+# the two families' native video keys, caption contexts, ratios and normalizers.
+_SUTUREBOT_ROOTS = (
+    "jhu/imerse/wound_closure/point_labeled/fausto_0_1_jesse_0_1_2_labeled",
+    "jhu/hf_suturebot",
+)
+_TWO_ROOTS = dict(
+    families=["dvrk_jhu", "dvrk_suturebot_mono"], root_allowlist=_SUTUREBOT_ROOTS,
+    include_nonpublic=True, caption_prefix_mode="fixed",
+)
+nano_h16_suturebot = _experiment(
+    "nano-h16-suturebot", **_TWO_ROOTS, lr_schedule="as_trained",
+    dataloader_val=h16_dataloader(**_TWO_ROOTS, augment=False, split="val", num_workers=4, prefetch_factor=2),
+    callbacks=dict(
+        nano_ema=L(InitEmaFromNano)(),
+        repro=L(ReproRecordCallback)(
+            normalizer=[f.kwargs["normalizer_filename"] for f in FAMILIES if f.name in _TWO_ROOTS["families"]],
+            data_roots=list(_SUTUREBOT_ROOTS),
+        ),
+    ),
+)
+nano_h16_suturebot.checkpoint.keys_to_skip_loading = ["net_ema."]
+nano_h16_suturebot.trainer.grad_accum_iter = 1
+nano_h16_suturebot.trainer.run_validation = True
+nano_h16_suturebot.trainer.run_validation_on_start = True
+cs.store(group="experiment", package="_global_", name="nano-h16-suturebot", node=nano_h16_suturebot)
