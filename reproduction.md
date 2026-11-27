@@ -10,7 +10,7 @@ Match evidence by title: the Arm C vs A comparison moved 26 → 38 → 40, and t
 
 ## `suturebot-camp-pretrain` — slides 26 and 27
 
-**State:** running; step 7,900 logged locally at the 27 Nov 2026 02:52 PT check, cap 20,000. Provisional; the checkpoint selected at the end has not been measured or released. Slurm job **443703**. No selected-checkpoint gate verdict or downstream result yet.
+**State:** running, Slurm job **443703**, cap 20,000. At the 27 Nov 2026 11:01 PT watch, step 12,200 was logged locally, the latest complete checkpoint was step 12,000, and the same W&B run was online at step 12,150. The resolved control still failed the data gate on all seven roots. The pretrain is being allowed to finish; its results remain provisional. Neither the final checkpoint gate nor a downstream run is authorized by an intermediate save.
 
 - Branch `ohalimi/suturebot-camp`, clean code commit `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff. The later dictionary readout rebuild at `c35b0c0d633b3e21a5954cb20a2ddde0ecadd2b9` is **not** the training revision.
 - W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / 9qq6q9tb` ([run and reproduction files](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/9qq6q9tb)).
