@@ -2,14 +2,14 @@
 
 ## nano-h16-suturebot
 
-**Final save published, 27 Nov 2026 14:44 PT.** Job 442417 published `iter_000050000` as its latest checkpoint, with nonempty model, optimizer, scheduler and trainer metadata and all 64 expected nonempty model shards. The final evaluation was submitted only after that check. Six earlier one-node evaluations through step 25,000 finished on the frozen panel; their online plans and summaries matched the saved files. The step-50,000 held-out scores are pending. All results are provisional.
+**Training finished at step 50,000.** Job 442417 completed at 14:48:15 PT on 27 Nov 2026 (exit 0:0); Forge marked the original run finished at step 50,000. At 14:44 PT it had published `iter_000050000` as its latest checkpoint, with nonempty model, optimizer, scheduler and trainer metadata and all 64 expected nonempty model shards. The final evaluation was submitted only after that check. Six earlier one-node evaluations through step 25,000 finished on the frozen panel; their online plans and summaries matched the saved files. The step-50,000 held-out scores are pending. All results are provisional.
 
 **Provisional data.** Neither dataset nor the Cosmos3-Nano start weights passed the ordinary stamp check. Both training attempts, their checkpoints, and every Slide 7 and 18 result remain provisional. The 27 Nov 10:22 PT order authorizes exactly two evaluations despite those failures: step 25,000 now and step 50,000 only after its complete save. Each must record the exception and failing inputs. It does not authorize another training job or validate the data.
 
 | Job | Starting state | Outcome |
 | --- | --- | --- |
 | 438465 | Clean base `11a02c275e2a24c30cb1f8ca697164d0ce28c140`, initialized from **Cosmos3-Nano** | Failed after saving step 8,400. On rank 62 the sigma logger paired 9 vision sigmas with a single loss. |
-| 442417 | Same base, output directory and Forge run; restored model, optimizer, scheduler, trainer and data-loader state from `iter_000008400` | Running. First new iteration 8,401; first complete post-resume save 8,500. |
+| 442417 | Same base, output directory and Forge run; restored model, optimizer, scheduler, trainer and data-loader state from `iter_000008400` | Completed at 50,000, exit 0:0. First new iteration 8,401; first complete post-resume save 8,500. |
 
 **Code and run.** Branch `ohalimi/nano-h16-suturebot`; framework commit `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. W&B: [holoscan-advanced-workflow-team / cosmos3_suturebot_memory / zrhxudfh](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/zrhxudfh). Both jobs used 16 nodes × 4 ranks. Trainer seed (`repro/seed`): **0**; data and split seed: **42**.
 
