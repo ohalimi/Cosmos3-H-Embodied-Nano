@@ -60,8 +60,9 @@ class EpisodeDictionary(nn.Module):
     observation, not learned state: they must never be initialized from EMA mass.
     """
 
-    def __init__(self, hidden_width=HIDDEN):
+    def __init__(self, hidden_width=HIDDEN, *, numeric_factor=None):
         super().__init__()
+        self.numeric_factor = numeric_factor
         self.register_buffer('centers', torch.zeros(ENTRIES, hidden_width))
         self.register_buffer('mass', torch.zeros(ENTRIES))
         self.register_buffer('moment', torch.zeros(ENTRIES, hidden_width))
@@ -79,6 +80,17 @@ class EpisodeDictionary(nn.Module):
             raise ValueError('unexpected hidden width')
         flat = hidden.reshape(-1, width).float()
         return torch.cdist(flat, self.centers).argmin(dim=-1).reshape(hidden.shape[:-1])
+
+    @torch.no_grad()
+    def _train_ids(self, hidden):
+        if self.numeric_factor != 'squared-training-assignment':
+            return self.assign(hidden)
+        # Do not clamp: signed cancellation residuals can reorder nearly coincident centers.
+        x = hidden.flatten(0, -2).float()
+        norms = x.square().sum(-1, keepdim=True)
+        cross = (2. * x) @ self.centers.T
+        distance = (norms - cross) + self.centers.square().sum(-1)
+        return distance.argmin(-1).reshape(hidden.shape[:-1])
 
     @staticmethod
     def summarize_votes(votes):
@@ -114,11 +126,22 @@ class EpisodeDictionary(nn.Module):
     def _observe(self, ids, samples):
         votes = ids.bincount(minlength=ENTRIES)
         self.batch_votes = votes
-        batch_sum = torch.zeros_like(self.moment).index_add_(0, ids, samples)
-        self.moment.lerp_(batch_sum, .01)
-        self.mass.lerp_(votes.to(self.mass), .01)
+        if self.numeric_factor == 'matrix-center-sums':
+            membership = F.one_hot(ids, num_classes=ENTRIES).to(samples.dtype)
+            batch_sum = membership.T @ samples
+        else:
+            batch_sum = torch.zeros_like(self.moment).index_add_(0, ids, samples)
+        if self.numeric_factor == 'multiply-add-ema':
+            self.moment.mul_(.99).add_(batch_sum, alpha=1.-.99)
+            self.mass.mul_(.99).add_(votes.to(self.mass), alpha=1.-.99)
+        else:
+            self.moment.lerp_(batch_sum, .01)
+            self.mass.lerp_(votes.to(self.mass), .01)
         total = self.mass.sum()
-        smoothed = (self.mass + 1e-5) * (total / (total + ENTRIES * 1e-5))
+        if self.numeric_factor == 'divide-first-smoothing':
+            smoothed = ((self.mass + 1e-5) / (total + ENTRIES * 1e-5)) * total
+        else:
+            smoothed = (self.mass + 1e-5) * (total / (total + ENTRIES * 1e-5))
         self.centers.copy_(self.moment / smoothed.unsqueeze(1))
         self.age.add_(1).masked_fill_(votes.ne(0), 0)
         expired, = torch.where(self.age >= 100)
@@ -135,7 +158,7 @@ class EpisodeDictionary(nn.Module):
         if self.training and not self.ready:
             self._populate(torch.arange(ENTRIES, device=hidden.device), samples)
             self.ready.fill_(True)
-        ids = self.assign(hidden)
+        ids = self._train_ids(hidden) if self.training else self.assign(hidden)
         # Snapshot the winning vectors before the moving averages change them.
         selected = self.centers[ids].to(hidden.dtype)
         if self.training:
@@ -147,7 +170,7 @@ class EpisodeDictionary(nn.Module):
 class TrajectoryCodes(nn.Module):
     """Two DCT readouts: continuous-state primary, projected-code auxiliary."""
 
-    def __init__(self, encoder, feature_dim, window, *, hidden_width=HIDDEN, gamma=0., offsets=OFFSETS):
+    def __init__(self, encoder, feature_dim, window, *, hidden_width=HIDDEN, gamma=0., offsets=OFFSETS, numeric_factor=None):
         super().__init__()
         if window < N_BANDS:
             raise ValueError('past window cannot be shorter than the basis')
@@ -159,13 +182,20 @@ class TrajectoryCodes(nn.Module):
         self.register_buffer('band_weights', band_weights, persistent=False)
         self.encoder = encoder
         self.recurrent = nn.LSTM(feature_dim + WIDTH, hidden_width, num_layers=2, batch_first=True)
-        self.dictionary = EpisodeDictionary(hidden_width)
+        self.dictionary = EpisodeDictionary(hidden_width, numeric_factor=numeric_factor)
         self.hidden_readout = nn.Linear(hidden_width, N_BANDS * WIDTH)
         self.to_rows = nn.Sequential(nn.Linear(hidden_width, 3 * WIDTH), nn.Tanh())
         self.code_readout = nn.Linear(3 * WIDTH, N_BANDS * WIDTH)
-        n = torch.arange(window, dtype=torch.float64)[:, None] + .5
-        basis = torch.cos(n * torch.arange(N_BANDS) * (math.pi / window)) * math.sqrt(2 / window)
-        basis[:, 0] /= math.sqrt(2)
+        if numeric_factor == 'single-precision-basis':
+            angle = (math.pi / window) * (torch.arange(window, dtype=torch.float32)[:, None] + .5)
+            harmonics = torch.cos(angle * torch.arange(N_BANDS, dtype=torch.float32))
+            scale = torch.full((N_BANDS,), math.sqrt(2 / window), dtype=torch.float32)
+            scale[0] = math.sqrt(1 / window)
+            basis = harmonics * scale
+        else:
+            n = torch.arange(window, dtype=torch.float64)[:, None] + .5
+            basis = torch.cos(n * torch.arange(N_BANDS) * (math.pi / window)) * math.sqrt(2 / window)
+            basis[:, 0] /= math.sqrt(2)
         self.register_buffer('basis', basis.float(), persistent=False)
 
     def features(self, rgb, proprio, previous_action):

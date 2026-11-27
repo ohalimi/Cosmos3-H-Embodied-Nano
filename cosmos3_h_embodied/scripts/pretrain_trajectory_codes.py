@@ -95,7 +95,8 @@ def construct(window, device, camera=True, *, factor=None):
     return TrajectoryCodes(encoder, dim, 512 if factor == 'short-dct-window' else window,
                            hidden_width=128 if factor == 'wide-hidden' else HIDDEN,
                            gamma=1. if factor == 'frequency-decay' else 0.,
-                           offsets=(16,) if factor == 'single-consistency-lag' else OFFSETS).to(device)
+                           offsets=(16,) if factor == 'single-consistency-lag' else OFFSETS,
+                           numeric_factor=factor).to(device)
 
 
 def validation(model, obs, pool, rng, device):

@@ -12,7 +12,8 @@ from cosmos3_h_embodied.data.trajectory_episodes import kinematics
 
 FACTORS = ('mixed-root-batches', 'no-camera', 'internal-action-scaling', 'fast-learning-rate',
            'wide-hidden', 'frequency-decay', 'short-dct-window', 'single-consistency-lag', 'cap-sequences',
-           'clipped-z-actions', 'unclipped-quantile-actions')
+           'clipped-z-actions', 'unclipped-quantile-actions', 'squared-training-assignment',
+           'matrix-center-sums', 'multiply-add-ema', 'divide-first-smoothing', 'single-precision-basis')
 PROBE_STEPS = (600, 800, 1000)
 
 
