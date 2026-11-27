@@ -16,14 +16,15 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from cosmos3_h_embodied.data.trajectory_episodes import registered, left_frames, kinematics, fit_pose
-from cosmos3_h_embodied.model.trajectory_codes import TrajectoryCodes, fixed_camera_encoder
+from cosmos3_h_embodied.model.trajectory_codes import HIDDEN, OFFSETS, TrajectoryCodes, fixed_camera_encoder
 
 
 from .trajectory_probes import FACTORS, PROBE_STEPS, action_fit, fixed_panel, mixed_positions
 
 
 class Observations:
-    def __init__(self, dataset, stats, camera=True, action_stats=None):
+    def __init__(self, dataset, stats, camera=True, action_stats=None, *, max_steps=None):
+        self.max_steps = max_steps
         self.camera = camera
         self.action_stats = None if action_stats is None else tuple(torch.tensor(action_stats[k], dtype=torch.float32) for k in ('mean', 'std'))
         self.dataset = dataset
@@ -41,7 +42,10 @@ class Observations:
             mean, std = self.action_stats
             action[:-1] = (action[:-1] - mean) / std
         # Clone the downsample, so the cache does not retain full-rate video.
-        rgb = self.images(e)[phase::e.stride].contiguous() if self.camera else pose.new_empty((len(pose), 0))
+        # Truncate the 10 Hz sequence, not native video frames, the fit or the pool used for sampling.
+        if self.max_steps is not None:
+            pose, action = pose[:self.max_steps], action[:self.max_steps]
+        rgb = self.images(e)[phase::e.stride][:self.max_steps].contiguous() if self.camera else pose.new_empty((len(pose), 0))
         return rgb, (pose - self.mean) / self.std, action
 
     def batch(self, pool, rng, count, device, mix_step=None):
@@ -63,10 +67,19 @@ def save_atomic(obj, dest):
     tmp.replace(dest)
 
 
-def construct(window, device, camera=True):
-    if not camera:
-        return TrajectoryCodes(None, 20, window).to(device)
-    return TrajectoryCodes(*fixed_camera_encoder((3, 96, 96), 20), window).to(device)
+def make_observations(dataset, stats, factor=None, scaling=None):
+    return Observations(dataset, stats, camera=factor != 'no-camera', action_stats=scaling,
+                        max_steps=512 if factor == 'cap-sequences' else None)
+
+
+def construct(window, device, camera=True, *, factor=None):
+    """Build from the registered horizon or a saved effective window and the recorded factor."""
+    camera = camera and factor != 'no-camera'
+    encoder, dim = fixed_camera_encoder((3, 96, 96), 20) if camera else (None, 20)
+    return TrajectoryCodes(encoder, dim, 512 if factor == 'short-dct-window' else window,
+                           hidden_width=128 if factor == 'wide-hidden' else HIDDEN,
+                           gamma=1. if factor == 'frequency-decay' else 0.,
+                           offsets=(16,) if factor == 'single-consistency-lag' else OFFSETS).to(device)
 
 
 def validation(model, obs, pool, rng, device):
@@ -93,9 +106,8 @@ def pretrain(config, out, device, log=None, factor=None):
         raise ValueError('overlapping training and validation episode IDs')
     window = max(e.steps for e in tr)
     stats = fit_pose(train, tr)
-    camera = factor != 'no-camera'
     scaling = action_fit(train, tr, stats) if factor == 'internal-action-scaling' else None
-    train_obs, val_obs = (Observations(data, stats, camera, scaling) for data in (train, val))
+    train_obs, val_obs = (make_observations(data, stats, factor, scaling) for data in (train, val))
     tr, va = (sorted((e for e in eps if e.steps >= 32), key=lambda e:e.steps) for eps in (tr,va))
     if not tr or not va:
         raise ValueError('no eligible training or validation episodes')
@@ -110,7 +122,8 @@ def pretrain(config, out, device, log=None, factor=None):
     config_digest = hashlib.sha256(Path(config).read_bytes()).hexdigest()
     torch.manual_seed(0)
     rng = random.Random(0)
-    model = construct(window, device, camera)
+    model = construct(window, device, factor=factor)
+    window = model.basis.size(0)  # Stored horizon is the actual DCT window, not the sequence cap.
     opt = make_optimizer(model, factor)
     first, best = 1, float('inf')
     import torch.distributed.checkpoint as dcp

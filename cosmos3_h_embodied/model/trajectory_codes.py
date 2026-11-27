@@ -60,11 +60,11 @@ class EpisodeDictionary(nn.Module):
     observation, not learned state: they must never be initialized from EMA mass.
     """
 
-    def __init__(self):
+    def __init__(self, hidden_width=HIDDEN):
         super().__init__()
-        self.register_buffer('centers', torch.zeros(ENTRIES, HIDDEN))
+        self.register_buffer('centers', torch.zeros(ENTRIES, hidden_width))
         self.register_buffer('mass', torch.zeros(ENTRIES))
-        self.register_buffer('moment', torch.zeros(ENTRIES, HIDDEN))
+        self.register_buffer('moment', torch.zeros(ENTRIES, hidden_width))
         self.register_buffer('age', torch.zeros(ENTRIES, dtype=torch.long))
         self.register_buffer('ready', torch.tensor(False))
         self.register_buffer('batch_votes', None, persistent=False)
@@ -74,9 +74,10 @@ class EpisodeDictionary(nn.Module):
         """Return one nearest-center index per state, without any update or RNG."""
         if not self.ready:
             raise RuntimeError('no trained dictionary')
-        if hidden.shape[-1] != HIDDEN:
+        width = self.centers.size(1)
+        if hidden.shape[-1] != width:
             raise ValueError('unexpected hidden width')
-        flat = hidden.reshape(-1, HIDDEN).float()
+        flat = hidden.reshape(-1, width).float()
         return torch.cdist(flat, self.centers).argmin(dim=-1).reshape(hidden.shape[:-1])
 
     @staticmethod
@@ -146,15 +147,21 @@ class EpisodeDictionary(nn.Module):
 class TrajectoryCodes(nn.Module):
     """Two DCT readouts: continuous-state primary, projected-code auxiliary."""
 
-    def __init__(self, encoder, feature_dim, window):
+    def __init__(self, encoder, feature_dim, window, *, hidden_width=HIDDEN, gamma=0., offsets=OFFSETS):
         super().__init__()
         if window < N_BANDS:
             raise ValueError('past window cannot be shorter than the basis')
+        self.gamma = gamma
+        self.offsets = offsets
+        # Preserve the ordinary MSE kernel when unweighted. Diagnostic weights are
+        # derived exclusively from the recipe, not additional learned/checkpoint state.
+        band_weights = (-gamma * torch.linspace(0., 1., N_BANDS)).softmax(0) if gamma else None
+        self.register_buffer('band_weights', band_weights, persistent=False)
         self.encoder = encoder
-        self.recurrent = nn.LSTM(feature_dim + WIDTH, HIDDEN, num_layers=2, batch_first=True)
-        self.dictionary = EpisodeDictionary()
-        self.hidden_readout = nn.Linear(HIDDEN, N_BANDS * WIDTH)
-        self.to_rows = nn.Sequential(nn.Linear(HIDDEN, 3 * WIDTH), nn.Tanh())
+        self.recurrent = nn.LSTM(feature_dim + WIDTH, hidden_width, num_layers=2, batch_first=True)
+        self.dictionary = EpisodeDictionary(hidden_width)
+        self.hidden_readout = nn.Linear(hidden_width, N_BANDS * WIDTH)
+        self.to_rows = nn.Sequential(nn.Linear(hidden_width, 3 * WIDTH), nn.Tanh())
         self.code_readout = nn.Linear(3 * WIDTH, N_BANDS * WIDTH)
         n = torch.arange(window, dtype=torch.float64)[:, None] + .5
         basis = torch.cos(n * torch.arange(N_BANDS) * (math.pi / window)) * math.sqrt(2 / window)
@@ -188,6 +195,13 @@ class TrajectoryCodes(nn.Module):
         q, commitment = self.dictionary(h, mask)
         return h, self.to_rows(q), commitment
 
+    def _reconstruction_error(self, prediction, target):
+        if self.band_weights is None:
+            return F.mse_loss(prediction, target)
+        # Global mean of the per-coordinate MSE, with a normalized weighted band axis.
+        by_band = (prediction - target).square().mean(dim=-1)
+        return (by_band * self.band_weights).sum(dim=-1).mean()
+
     def losses(self, hidden, code, commitment, trajectory, anchors, lengths):
         """The executed pose trajectory ends at observation t, not the command for t+1.
         Repeat the first measured point on the left.
@@ -205,14 +219,15 @@ class TrajectoryCodes(nn.Module):
         aux = self.code_readout(code[:, anchors]).unflatten(-1, (N_BANDS, WIDTH))
         # For chronologically ordered windows the later prefix is the earlier suffix.
         terms = []
-        for lag in OFFSETS:
+        for lag in self.offsets:
             keep = anchors + lag < end
             if lag < w and keep.any():
                 other = self.hidden_readout(hidden[:, anchors[keep] + lag]).unflatten(-1, (N_BANDS, WIDTH))
                 early = torch.einsum('wk,bmkd->bmwd', self.basis[lag:], pred[:, keep])
                 late = torch.einsum('wk,bmkd->bmwd', self.basis[:-lag], other)
                 terms.append(F.mse_loss(early, late))
-        return {'reconstruction': F.mse_loss(pred, targets), 'code_reconstruction': F.mse_loss(aux, targets),
+        return {'reconstruction': self._reconstruction_error(pred, targets),
+                'code_reconstruction': self._reconstruction_error(aux, targets),
                 'overlap': torch.stack(terms).mean() if terms else hidden.new_zeros(()), 'commitment': commitment}
 
     @torch.inference_mode()

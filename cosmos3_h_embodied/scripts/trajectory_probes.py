@@ -10,7 +10,8 @@ import torch
 from cosmos3_h_embodied.data.trajectory_episodes import kinematics
 
 
-FACTORS = ('mixed-root-batches', 'no-camera', 'internal-action-scaling', 'fast-learning-rate')
+FACTORS = ('mixed-root-batches', 'no-camera', 'internal-action-scaling', 'fast-learning-rate',
+           'wide-hidden', 'frequency-decay', 'short-dct-window', 'single-consistency-lag', 'cap-sequences')
 PROBE_STEPS = (600, 800, 1000)
 
 
