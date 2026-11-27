@@ -2,9 +2,9 @@
 
 ## nano-h16-suturebot
 
-**Running, 27 Nov 2026 11:00 PT.** Slurm job 442417 was running on 16 nodes; the original Forge run reported step **44,820 of 50,000**. The latest checkpoint pointer named **44,800**. Both that save and the retained 25,000 save had nonempty model, optimizer, scheduler and trainer metadata and 64 nonempty model shards. The five one-node evaluations through step 10,000 finished; their Forge plans and summaries matched the saved files. **Step 25,000 is saved but not scored:** the input gate again exited 1, so no evaluation job or W&B record was created. The 50,000 save did not yet exist.
+**Running, 27 Nov 2026 11:30 PT.** Slurm job 442417 was running on 16 nodes. Forge reported **45,510 of 50,000**; the latest save pointer named **45,500**. The retained 25,000 save has nonempty model, optimizer, scheduler and trainer metadata and 64 nonempty model shards. The five one-node evaluations through step 10,000 finished; their online plans and summaries matched the saved files. Step 25,000 is saved; its held-out scores are pending. Step 50,000 is not yet saved.
 
-**Data gate: failed.** At the 25,000 check both dataset READMEs and the Cosmos3-Nano README explicitly said `kosher: no`; the retained checkpoint directory had no README. Both training attempts, their checkpoints, and all Slide 7 and 18 results derived from them are **provisional**. The existing training job continues; no new training or evaluation may be submitted unless the gate passes for every input. Completion and matching digests establish what ran, not that the inputs match the reference team's data.
+**Provisional data.** Neither dataset nor the Cosmos3-Nano start weights passed the ordinary stamp check. Both training attempts, their checkpoints, and every Slide 7 and 18 result remain provisional. The 27 Nov 10:22 PT order authorizes exactly two evaluations despite those failures: step 25,000 now and step 50,000 only after its complete save. Each must record the exception and failing inputs. It does not authorize another training job or validate the data.
 
 | Job | Starting state | Outcome |
 | --- | --- | --- |
