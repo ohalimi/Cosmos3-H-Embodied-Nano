@@ -16,7 +16,9 @@ from openh_signals.runtime_eval_store import SingleWorkerEvaluation, _identity
 
 
 def test_private_eval_coordinator(tmp_path):
-    ident = lambda x: sha256(x.encode()).hexdigest()
+    def ident(x):
+        return sha256(x.encode()).hexdigest()
+
     cfg = (1, 1, 1, 2)
     reserve = evaluation_reservation(*cfg)
     spec = dict(
