@@ -2,7 +2,7 @@
 
 ## nano-h16-suturebot
 
-**Running, 26 Nov 2026 18:17 PT.** Job 442417 is on the original Forge run. The latest verified complete checkpoint was **21,500 of 50,000** (model, optimizer, scheduler and trainer metadata); the Forge summary read 21,490. Steps 25,000 and 50,000 had not been saved.
+**Running, 26 Nov 2026 18:29 PT.** Job 442417 is on the original Forge run. The latest verified complete checkpoint was **21,700 of 50,000** (model, optimizer, scheduler and trainer metadata). The five evaluations through step 10,000 have finished. The 25,000 and 50,000 evaluations have not been submitted.
 
 **Data gate: failed.** Neither training root nor the Cosmos3-Nano start weights had the required README. Both training attempts, their checkpoints, and all Slide 7 and 18 results derived from them are **provisional**. The four held-out evaluations through step 5,000 finished before the hold; step 10,000 was already running. Do not repeat them or submit a new evaluation, training job or resume unless the gate passes for every input. Completion and matching digests establish what ran, not that the inputs match the reference team’s data.
 
@@ -83,4 +83,4 @@ Slide 18, checkpoint **5,000** (`iter_000005000/model`, ema); model metadata SHA
 
 ## nano-h16-suturebot-eval-s10000
 
-Slide 18, checkpoint **10,000** (`iter_000010000/model`, ema); model metadata SHA-256 `473b619bcd14d97bf79b530d1c0d985acb5dea3afc5326aa5573b65465c1ccfc`. Job **446666**, [Forge eval 747fd3d0](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/747fd3d0), running as of 2026-11-26 18:09 PT; scores pending. Same code, launcher, panel and three-seed command as above.
+Slide 18, checkpoint **10,000** (`iter_000010000/model`, ema); model metadata SHA-256 `473b619bcd14d97bf79b530d1c0d985acb5dea3afc5326aa5573b65465c1ccfc`. Job **446666**, [Forge eval 747fd3d0](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/747fd3d0), finished; verified against the online plan and summary files. Same code, launcher, panel and three-seed command as above.
