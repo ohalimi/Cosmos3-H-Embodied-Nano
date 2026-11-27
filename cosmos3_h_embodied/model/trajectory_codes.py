@@ -38,6 +38,8 @@ class EndoscopeEncoder(nn.Module):
         image = obs['left']
         n = image.shape[0]
         off = (torch.rand(n, 2, device=image.device) * 12).long() if self.training else image.new_full((n, 2), 6, dtype=torch.long)
+        if self.training and getattr(self, 'center_training_crop', False):
+            off.fill_(6)  # Retain the ordinary crop draws, change only which pixels are used.
         axis = torch.arange(84, device=image.device)
         iy = off[:, :1] + axis
         ix = off[:, 1:] + axis
@@ -63,6 +65,11 @@ class EpisodeDictionary(nn.Module):
     def __init__(self, hidden_width=HIDDEN, *, numeric_factor=None):
         super().__init__()
         self.numeric_factor = numeric_factor
+        if numeric_factor == 'independent-vq-draws':
+            from .trajectory_rng import IsolatedDraws
+            self.isolated_draws = IsolatedDraws()
+        else:
+            self.isolated_draws = None
         self.register_buffer('centers', torch.zeros(ENTRIES, hidden_width))
         self.register_buffer('mass', torch.zeros(ENTRIES))
         self.register_buffer('moment', torch.zeros(ENTRIES, hidden_width))
@@ -113,10 +120,13 @@ class EpisodeDictionary(nn.Module):
     @torch.no_grad()
     def _populate(self, slots, samples):
         """Choose seeds from valid data; their unit prior mass is not a vote."""
-        index = torch.randint(samples.size(0), slots.shape, device=samples.device)
-        seeds = samples.index_select(0, index)
-        if samples.size(0) < slots.numel():
-            seeds += torch.randn_like(seeds) * (.01 * samples.std() + 1e-6)
+        if self.isolated_draws is not None:
+            seeds = self.isolated_draws.sample(samples, slots)
+        else:
+            index = torch.randint(samples.size(0), slots.shape, device=samples.device)
+            seeds = samples.index_select(0, index)
+            if samples.size(0) < slots.numel():
+                seeds += torch.randn_like(seeds) * (.01 * samples.std() + 1e-6)
         self.centers.index_copy_(0, slots, seeds)
         self.moment.index_copy_(0, slots, seeds)
         self.mass[slots] = 1
@@ -184,6 +194,9 @@ class TrajectoryCodes(nn.Module):
         self.recurrent = nn.LSTM(feature_dim + WIDTH, hidden_width, num_layers=2, batch_first=True)
         self.dictionary = EpisodeDictionary(hidden_width, numeric_factor=numeric_factor)
         self.hidden_readout = nn.Linear(hidden_width, N_BANDS * WIDTH)
+        if numeric_factor == 'embedding-init-draws':
+            # Advance only the constructor stream, not any learnable or dictionary state.
+            torch.empty(ENTRIES, hidden_width).normal_()
         self.to_rows = nn.Sequential(nn.Linear(hidden_width, 3 * WIDTH), nn.Tanh())
         self.code_readout = nn.Linear(3 * WIDTH, N_BANDS * WIDTH)
         if numeric_factor == 'single-precision-basis':

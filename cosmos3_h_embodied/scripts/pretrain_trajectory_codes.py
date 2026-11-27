@@ -91,7 +91,13 @@ def make_observations(dataset, stats, factor=None, scaling=None):
 def construct(window, device, camera=True, *, factor=None):
     """Build from the registered horizon or a saved effective window and the recorded factor."""
     camera = camera and factor != 'no-camera'
-    encoder, dim = fixed_camera_encoder((3, 96, 96), 20) if camera else (None, 20)
+    if camera and factor == 'independent-camera-init':
+        with torch.random.fork_rng(devices=[]):
+            encoder, dim = fixed_camera_encoder((3, 96, 96), 20)
+    else:
+        encoder, dim = fixed_camera_encoder((3, 96, 96), 20) if camera else (None, 20)
+    if camera and factor == 'center-training-crop':
+        encoder.center_training_crop = True
     return TrajectoryCodes(encoder, dim, 512 if factor == 'short-dct-window' else window,
                            hidden_width=128 if factor == 'wide-hidden' else HIDDEN,
                            gamma=1. if factor == 'frequency-decay' else 0.,
