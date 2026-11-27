@@ -2,7 +2,9 @@
 
 ## nano-h16-suturebot
 
-**Running at step 20,940 of 50,000** (Forge, 26 Nov 2026 17:52 PT); the latest verified complete save was 20,900. The evaluation inputs at steps 0 (Cosmos3-Nano), 100, 1,000, 5,000 and 10,000 are present. Steps 25,000 and 50,000 have not been saved. See the separate held-out evaluation records below; training validation loss is not a rollout score.
+**Running, 26 Nov 2026 18:17 PT.** Job 442417 is on the original Forge run. The latest verified complete checkpoint was **21,500 of 50,000** (model, optimizer, scheduler and trainer metadata); the Forge summary read 21,490. Steps 25,000 and 50,000 had not been saved.
+
+**Data gate: failed.** Neither training root nor the Cosmos3-Nano start weights had the required README. Both training attempts, their checkpoints, and all Slide 7 and 18 results derived from them are **provisional**. The four held-out evaluations through step 5,000 finished before the hold; step 10,000 was already running. Do not repeat them or submit a new evaluation, training job or resume unless the gate passes for every input. Completion and matching digests establish what ran, not that the inputs match the reference team’s data.
 
 | Job | Starting state | Outcome |
 | --- | --- | --- |
@@ -13,7 +15,7 @@
 
 **Resume diff.** The first job has no patch. For the second, keep the base above and apply exactly `git diff 11a02c275e2a 5433f75f1421670963c9c99ee17b9cd734767251`. This is the tree change recorded by Forge as `repro/dirty=true`, `repro/diff`, and `ops/fix_commit`. `experiment_h16.py` selects `PackedSigmaLossAnalysis`; `packed_sigma_loss.py` excludes missing or mismatched per-item vision losses from the logger without dropping its distributed gathers; `test_packed_sigma_loss.py` covers that behavior. No optimizer, objective, split, or step-cap change. The archived resume `diff.patch` has SHA-256 `e267d0e79a3a4403c734e595d4ffb713f21061a5ff70c20dc8797cea56ace763` (including its final newline).
 
-**Inputs.** Set `OPENH_DATA_ROOT` to the parent of the two prepared v3.0 roots. Use `tools/data_prep` for the public point-labeled wound-closure root; do not use the raw download or substitute a clean-video twin. These are the only eligible roots:
+**Historical inputs (not verified for reuse).** `OPENH_DATA_ROOT` pointed to the parent of the two v3.0 roots below. The recorded run used the public point-labeled wound-closure root built with `tools/data_prep`, not the raw download or a clean-video twin. This describes the run; it is not a preparation instruction or evidence of equivalence to the reference team's copy.
 
 | Public root | Train episodes | Validation episodes | Exclusions |
 | --- | ---: | ---: | --- |
