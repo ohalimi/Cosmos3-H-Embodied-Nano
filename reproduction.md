@@ -1,6 +1,6 @@
 # Reproducing the CAMP memory arm
 
-Slide numbering: the Arm C vs A comparison (originally 26) is now slide 38; the alive, harmless and used checks (originally 27) are now slide 39. The original numbers below identify the run records. The three short diagnostics are not policy results or export candidates.
+Match evidence by title: the Arm C vs A comparison moved 26 → 38 → 40, and the alive, harmless and used checks moved 27 → 39 → 41 (17:12 PT deck manifest). Earlier numbers in run sections are historical. The original numbers below identify the run records. The three short diagnostics are not policy results or export candidates.
 
 ## `suturebot-camp-pretrain` — slides 26 and 27
 
