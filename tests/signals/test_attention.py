@@ -69,6 +69,36 @@ def test_real_packer_blocks_and_normalized_keys():
         observe_two_way(args, torch.zeros(11, dtype=torch.long), 4, 0)
 
 
+def test_value_cancellation_full_head_and_prompt_integrity():
+    from openh_signals.attention import FrozenText
+    q = torch.zeros(11, 32, 4)
+    k = torch.zeros(11, 8, 4)
+    v = torch.ones_like(k); v[3] = -1
+    args = packs(q, k, v)
+    for layer in (0, 35):
+        r, other = observe_two_way(args, labels('cpu'), 4, layer, tile=1, sentinel={0})
+        assert 'full_map' not in other
+        matrix = r['full_map']
+        assert matrix.shape == (6, 6) and matrix.dtype == torch.float16
+        assert matrix[0, 0] == 1 and matrix[0, 1:].count_nonzero() == 0
+        assert torch.all(matrix[1, :2] == .5) and matrix[1, 2:].count_nonzero() == 0
+        assert torch.all(matrix[2:] == torch.tensor(1/6, dtype=torch.float16))
+        torch.testing.assert_close(r['mass'][:, 3, 2], torch.full((32,), 1/3))
+        assert r['read_strength'][3, 2] == 0  # opposite V, same key-group mass
+        index = FrozenText(); first = index.apply('same-binding', r, 'first')
+        assert first['mass'].shape == (32, 4, 4)
+        restored = FrozenText(index.state_dict())
+        later = restored.apply('same-binding', r, 'later')
+        assert later['mass'].shape == (32, 2, 4) and later['text_reference'] == 'first'
+        assert later['mot_query_groups'].tolist() == [2, 3]
+        assert torch.equal(later['full_map'], matrix)
+        args2 = packs(q+1, k.clone(), v)
+        args2['packed_key_states']['causal_seq'][1] += 1
+        changed = observe_two_way(args2, labels('cpu'), 4, layer, tile=1)[0]
+        with pytest.raises(ValueError, match='frozen text'):
+            restored.apply('same-binding', changed, 'corrupt')
+
+
 def bytecopy(x):
     return x.detach().cpu().contiguous().reshape(-1).view(torch.uint8).clone()
 
@@ -96,7 +126,7 @@ def protocol(enabled, device='cpu', dtype=torch.float32, native=False, after=Non
         y = m(x, torch.arange(11, device=device) % 2).to(dtype).view(11, 8, d)
         q, k, v = y.split((4, 2, 2), 1)
         args = packs(q, k, v, ctor)
-        obs = observe_two_way(args, labels(device), 4, 0, tile=2, calibration=True) if enabled else None
+        obs = observe_two_way(args, labels(device), 4, 0, tile=2, calibration=True, sentinel=(0,)) if enabled else None
         if device == 'cpu':
             parts = []
             for a, c, z in ((0, 2, 6), (6, 9, 11)):

@@ -161,19 +161,87 @@ def observe_two_way(arguments, groups, n_groups, layer, *, sentinel=False, tile=
             raise ValueError('text and GEN groups must be disjoint')
         passes = ((qc[c], kc[c], vc[c], cg, cg, True),
                   (qf[f], ak[start:stop], av[start:stop], fg, g, False))
-        parts = [attention_summary(qq, kk, vv, qg, kg, n_groups, causal=causal, tile=tile,
-                                   calibration=calibration, digest=causal)
-                 for qq, kk, vv, qg, kg, causal in passes]
+        if isinstance(sentinel, bool):
+            if sentinel and stop-start != length:
+                raise ValueError('select physical sentinel indices for packed samples')
+            selected = sentinel
+        else:
+            if len(set(sentinel)) != len(sentinel) or len(sentinel) > 2:
+                raise ValueError('at most two distinct sentinels')
+            selected = b in sentinel
+        map_head = {0: 0, 35: 31}.get(layer) if selected else None
+        if map_head is not None and (stop-start > 4096 or map_head >= qc.size(1)):
+            raise ValueError('full map must fit without cropping or head substitution')
+        matrix = (torch.zeros((stop-start, stop-start), dtype=torch.float16, device='cpu')
+                  if map_head is not None else None)
+        squares = qc.new_zeros((n_groups, n_groups), dtype=torch.float32)
+        parts = []
+        for qq, kk, vv, qg, kg, causal in passes:
+            partial = None
+            def accumulate(i, j, p, values):
+                # Sum weighted V across all key tiles BEFORE squaring (cancellation matters).
+                nonlocal partial
+                heads, rows, keys = p.shape
+                if j == 0:
+                    partial = p.new_zeros((n_groups, heads, rows, values.size(-1)))
+                for group in kg[j:j+keys].unique().tolist():
+                    take = kg[j:j+keys] == group
+                    partial[group] += p[:, :, take] @ values[:, take]
+                if j + keys == len(kk):
+                    per_q = partial.square().sum((1, 3)).T  # rows, key groups
+                    squares.add_(torch.nn.functional.one_hot(qg[i:i+rows], n_groups).float().T @ per_q)
+                    partial = None
+                if matrix is not None:
+                    y = i if causal else len(cg) + i
+                    matrix[y:y+rows, j:j+keys] = p[map_head].to(device='cpu', dtype=torch.float16)
+            parts.append(attention_summary(qq, kk, vv, qg, kg, n_groups, causal=causal, tile=tile,
+                                           calibration=calibration, digest=causal, visit=accumulate))
         text, gen = parts
         is_text = text['counts'] > 0
         out = dict(mass=torch.where(is_text[:, None], text['mass'], gen['mass']),
                    entropy=torch.where(is_text, text['entropy'], gen['entropy']),
                    counts=text['counts'] + gen['counts'], legal=text['legal'] + gen['legal'],
                    max_row_error=torch.maximum(text['max_row_error'], gen['max_row_error']),
-                   text_digest=text['digest'])
+                   text_digest=text['digest'], text_rows=is_text.nonzero().flatten())
+        den = out['counts'].float() * (qc.size(1) * vc.size(2))
+        out['read_strength'] = (squares / den.masked_fill(den == 0, torch.nan)[:, None]).sqrt()
+        if matrix is not None:
+            out['full_map'] = matrix
         if calibration:
             out['mixture'] = torch.cat([part['mixture'] for part in parts])
         result.append(out)
     if not result or any(x < 0 for x in torch.diff(so).tolist()) or starts[-1] < length:
         raise ValueError('invalid sample offsets')
     return result
+
+
+class FrozenText:
+    """Fixed-prompt integrity index. Snapshot state with the event, not before publish.
+
+    Same reference (e.g. crash/retry) serializes the original payload again; later
+    events index it by pointer. Full sentinel matrices are never truncated.
+    The key must include the stable prompt, branch, layout, layer and kernel identity.
+    """
+    def __init__(self, records=None):
+        self._records = dict(records or {})
+
+    def state_dict(self):
+        return self._records.copy()
+
+    def apply(self, key, sample_summary, reference):
+        if not isinstance(key, str) or not key or not isinstance(reference, str) or not reference:
+            raise ValueError('fixed text observations need a key and a durable reference')
+        result = sample_summary.copy()
+        digest = result['text_digest']
+        original, pointer = self._records.get(key, (digest, reference))
+        if original != digest:
+            raise ValueError('frozen text probabilities changed for an identical prompt binding')
+        self._records[key] = (original, pointer)
+        result['text_reference'] = pointer
+        keep = torch.arange(len(result['counts']), device=result['counts'].device)
+        if pointer != reference:
+            keep = keep[~torch.isin(keep, result['text_rows'])]
+            result['mass'] = result['mass'][:, keep, :]
+            result['entropy'] = result['entropy'][:, keep]
+        result['mot_query_groups'] = keep
+        return result
