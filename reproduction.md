@@ -2,7 +2,7 @@
 
 ## nano-h16-suturebot
 
-**Running, 26 Nov 2026 20:45 PT.** Job 442417 is on the original Forge run. The latest pointer named the retained checkpoint **25,000 of 50,000**. All four components (model, optimizer, scheduler and trainer) had nonempty metadata; the model had 64 nonempty shards. The five evaluations through step 10,000 have finished. **Step 25,000 is saved but not scored:** the input gate failed, so there is no evaluation job or evaluation run ID. Step 50,000 has not been saved.
+**Running, 27 Nov 2026 11:00 PT.** Slurm job 442417 was running on 16 nodes; the original Forge run reported step **44,820 of 50,000**. The latest checkpoint pointer named **44,800**. Both that save and the retained 25,000 save had nonempty model, optimizer, scheduler and trainer metadata and 64 nonempty model shards. The five one-node evaluations through step 10,000 finished; their Forge plans and summaries matched the saved files. **Step 25,000 is saved but not scored:** the input gate again exited 1, so no evaluation job or W&B record was created. The 50,000 save did not yet exist.
 
 **Data gate: failed.** At the 25,000 check both dataset READMEs and the Cosmos3-Nano README explicitly said `kosher: no`; the retained checkpoint directory had no README. Both training attempts, their checkpoints, and all Slide 7 and 18 results derived from them are **provisional**. The existing training job continues; no new training or evaluation may be submitted unless the gate passes for every input. Completion and matching digests establish what ran, not that the inputs match the reference team's data.
 
