@@ -42,6 +42,12 @@ def load_action_stats(stats_path: str, stats_key: str = "global") -> dict[str, n
 NORM_CLIP = 1.5
 
 
+def quantile_affine(action: torch.Tensor, stats: dict[str, torch.Tensor]) -> torch.Tensor:
+    """Map the saved q01/q99 interval to [-1, 1], before any output clipping."""
+    q01, q99 = stats["q01"], stats["q99"]
+    return 2.0 * (action - q01) / (q99 - q01).clamp(min=1e-8) - 1.0
+
+
 def normalize_action(
     action: torch.Tensor,
     method: str,
@@ -49,9 +55,7 @@ def normalize_action(
 ) -> torch.Tensor:
     """Normalize action tensor (all dimensions including gripper)."""
     if method == "quantile":
-        q01, q99 = stats["q01"], stats["q99"]
-        denom = (q99 - q01).clamp(min=1e-8)
-        return (2.0 * (action - q01) / denom - 1.0).clamp(-NORM_CLIP, NORM_CLIP)
+        return quantile_affine(action, stats).clamp(-NORM_CLIP, NORM_CLIP)
     if method == "meanstd":
         return (action - stats["mean"]) / stats["std"].clamp(min=1e-8)
     if method == "minmax":

@@ -15,6 +15,7 @@ import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
+from cosmos3_h_embodied.data.action_normalization import NORM_CLIP, quantile_affine
 from cosmos3_h_embodied.data.trajectory_episodes import registered, left_frames, kinematics, fit_pose
 from cosmos3_h_embodied.model.trajectory_codes import HIDDEN, OFFSETS, TrajectoryCodes, fixed_camera_encoder
 
@@ -23,8 +24,11 @@ from .trajectory_probes import FACTORS, PROBE_STEPS, action_fit, fixed_panel, mi
 
 
 class Observations:
-    def __init__(self, dataset, stats, camera=True, action_stats=None, *, max_steps=None):
+    def __init__(self, dataset, stats, camera=True, action_stats=None, *, max_steps=None,
+                 unclipped_quantiles=False, clip_z=False):
         self.max_steps = max_steps
+        self.unclipped_quantiles = unclipped_quantiles
+        self.clip_z = clip_z
         self.camera = camera
         self.action_stats = None if action_stats is None else tuple(torch.tensor(action_stats[k], dtype=torch.float32) for k in ('mean', 'std'))
         self.dataset = dataset
@@ -37,10 +41,18 @@ class Observations:
 
     @lru_cache(maxsize=64)
     def sequence(self, e, phase=0):
-        pose, action = kinematics(e, self.dataset, phase, normalize=self.action_stats is None)
+        native = self.action_stats is None and not self.unclipped_quantiles
+        pose, action = kinematics(e, self.dataset, phase, normalize=native)
         if self.action_stats is not None:
             mean, std = self.action_stats
-            action[:-1] = (action[:-1] - mean) / std
+            calibrated = (action[:-1] - mean) / std
+            action[:-1] = calibrated.clamp(-NORM_CLIP, NORM_CLIP) if self.clip_z else calibrated
+        elif self.unclipped_quantiles:
+            if self.dataset._action_normalization != 'quantile':
+                raise ValueError('unclipped quantiles require the original quantile recipe')
+            action[:-1] = quantile_affine(action[:-1], self.dataset._load_norm_stats())
+        if not native and not torch.isfinite(action).all():
+            raise ValueError('nonfinite diagnostic action inputs')
         # Clone the downsample, so the cache does not retain full-rate video.
         # Truncate the 10 Hz sequence, not native video frames, the fit or the pool used for sampling.
         if self.max_steps is not None:
@@ -68,8 +80,12 @@ def save_atomic(obj, dest):
 
 
 def make_observations(dataset, stats, factor=None, scaling=None):
+    needs_fit = factor in ('internal-action-scaling', 'clipped-z-actions')
+    if needs_fit != (scaling is not None):
+        raise ValueError('supply the frozen training action fit exactly for z-score factors')
     return Observations(dataset, stats, camera=factor != 'no-camera', action_stats=scaling,
-                        max_steps=512 if factor == 'cap-sequences' else None)
+                        max_steps=512 if factor == 'cap-sequences' else None,
+                        unclipped_quantiles=factor == 'unclipped-quantile-actions', clip_z=factor == 'clipped-z-actions')
 
 
 def construct(window, device, camera=True, *, factor=None):
@@ -106,7 +122,7 @@ def pretrain(config, out, device, log=None, factor=None):
         raise ValueError('overlapping training and validation episode IDs')
     window = max(e.steps for e in tr)
     stats = fit_pose(train, tr)
-    scaling = action_fit(train, tr, stats) if factor == 'internal-action-scaling' else None
+    scaling = action_fit(train, tr, stats) if factor in ('internal-action-scaling', 'clipped-z-actions') else None
     train_obs, val_obs = (make_observations(data, stats, factor, scaling) for data in (train, val))
     tr, va = (sorted((e for e in eps if e.steps >= 32), key=lambda e:e.steps) for eps in (tr,va))
     if not tr or not va:
