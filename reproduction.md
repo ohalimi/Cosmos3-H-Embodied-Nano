@@ -2,7 +2,7 @@
 
 ## nano-h16-suturebot-ref32 — slides 18–20, Same, 32 × 2
 
-- State: running on 32 GPUs; first training step pending at initialization. Training job: **445512** (first attempt; no resumes).
+- State: running on 32 GPUs; step 100 checkpoint verified complete (32 model shards). Training job: **445512** (first attempt; no resumes). At that exact step Forge recorded train/loss 1.642933 and val/loss 1.477625. These are training diagnostics, not held-out generation scores.
 - Branch: `ohalimi/nano-h16-suturebot-ref32`. Clean training commit: `e3ca2a82a7442c3aacced51d4d79e198c4b95602`, based on the packed sigma logger fix `5433f75f1421670963c9c99ee17b9cd734767251`. Framework: `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No uncommitted training diff.
 - Forge W&B: [`holoscan-advanced-workflow-team/cosmos3_suturebot_memory/knamds38`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/knamds38). The run's repro record contains the exact expanded training command and the launch wrapper.
 - Launch command: `sbatch <project-root>/scripts/<launch-wrapper>`; launch wrapper SHA-256 `805c68286dcba7f81005a971e29ad831ccdc62f4e331ee484960d1d566fee15e`. Export `cosmos3_h_embodied/configs/config.py` with experiment `nano-h16-suturebot-ref32`; start 8 nodes × 4 GPUs, shard degree 32, accumulation 2.
