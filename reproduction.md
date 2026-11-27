@@ -60,7 +60,7 @@ Three-seed result (original / new / new): future policy MSE **0.010556991 / 0.02
 
 ## `suturebot-camp-northstar` — slides 38 and 39
 
-**State:** running, Forge through step 590; job **446185** (accounting RUNNING, exit 0:0). W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / gi9bk1rd` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/gi9bk1rd)).
+**State:** running, Forge through step 680; job **446185** (accounting RUNNING, exit 0:0). W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / gi9bk1rd` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/gi9bk1rd)).
 
 - Policy branch `ohalimi/suturebot-camp`, clean commit `8574545341f42ddafb1b20ddf52355386d6330fd`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff. `sbatch <project-root>/<verified-comparison-launcher>`; executed SHA-256 `072936866285268bf09b7630be527815ee75af95b81b5fac78f9b9687d7b3aeb`, source `c31cdd9a7c66cc36105289762c4e0502b02ff07cff26796e4a16b359a5c3cb90`. Full train/validation, joint and paired logs are retained; the run’s `repro/` holds the actual train command and resolved launch inputs.
 - Released start `h16_50000_dcp`, trainer seed 0, 2,000 steps, eight nodes × four ranks, same callbacks, save and validation cadence as A. Same seven roots listed above, train/val split seed 42, registered manifest `e702f9c54d8a95d69d942459f19445936b401f9b1ab65f6e523daea9850569de`. Three frozen 20D rows precede the 16 H16 history rows. Manifest SHA-256 `1baa12dfebea9646b040f547fb889ffe0d79f49b106f71037cea3afecf1d44d0`, verified export receipt `336599232a615b37b9ffc8d1d25cf2ae16ec95c1228091620f243fb105c6ce4d`.
@@ -71,7 +71,7 @@ Three-seed result (original / new / new): future policy MSE **0.010556991 / 0.02
 
 ## `suturebot-camp-public-s2500` — slides 38 and 39
 
-**State:** running, Forge through step 80; job **446395** (accounting RUNNING, exit 0:0). W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / j2wkbhyf` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/j2wkbhyf)).
+**State:** running, Forge through step 180; job **446395** (accounting RUNNING, exit 0:0). W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / j2wkbhyf` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/j2wkbhyf)).
 
 - Policy branch `ohalimi/suturebot-camp`, clean commit `8574545341f42ddafb1b20ddf52355386d6330fd`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff. `sbatch <project-root>/<verified-comparison-launcher>`; executed SHA-256 `6e88e3b9bf9ff58753eb90a4de320c7e16472edd0382dc61afc1230e35c87211`, source `6e5a6b44027caf75357756a94eb3030f99d5a0c627e0fd5c139ddec5a8b84d79`. Full train/validation, joint and paired logs are retained; the run’s `repro/` holds the actual train command and resolved launch inputs.
 - Released start `h16_50000_dcp`, trainer seed 0, 2,000 steps, eight nodes × four ranks, same callbacks, save and validation cadence as A. Same seven roots listed above, train/val split seed 42, registered manifest `e702f9c54d8a95d69d942459f19445936b401f9b1ab65f6e523daea9850569de`. Three frozen 20D rows precede the 16 H16 history rows. Manifest SHA-256 `106e7077583647a5a5c601a0988a6eb1c55dbc06b27132471d54c4d12523945e`, verified export receipt `6fd0a3881bdd124a1a3c85c9bd217b06fff186cef7596600f9da8da364b86479`.
