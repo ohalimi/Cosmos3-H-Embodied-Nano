@@ -2,7 +2,7 @@
 
 ## nano-h16-suturebot
 
-**Running, 27 Nov 2026 11:52 PT.** Slurm job 442417 was running on 16 nodes. Forge and the latest save pointer both reported **46,000 of 50,000**. Six one-node evaluations (steps 0 through 25,000) finished; their online plans and summaries matched the saved files. The step-25,000 evaluation completed successfully on the frozen panel with all three seeds. Its scores are provisional. Step 50,000 is not yet saved or evaluated.
+**Final save published, 27 Nov 2026 14:44 PT.** Job 442417 published `iter_000050000` as its latest checkpoint, with nonempty model, optimizer, scheduler and trainer metadata and all 64 expected nonempty model shards. The final evaluation was submitted only after that check. Six earlier one-node evaluations through step 25,000 finished on the frozen panel; their online plans and summaries matched the saved files. The step-50,000 held-out scores are pending. All results are provisional.
 
 **Provisional data.** Neither dataset nor the Cosmos3-Nano start weights passed the ordinary stamp check. Both training attempts, their checkpoints, and every Slide 7 and 18 result remain provisional. The 27 Nov 10:22 PT order authorizes exactly two evaluations despite those failures: step 25,000 now and step 50,000 only after its complete save. Each must record the exception and failing inputs. It does not authorize another training job or validate the data.
 
@@ -65,6 +65,8 @@ python -m tools.benchmark.heldout_panel --checkpoint "$MODEL_DIR" \
   --seed "$SEED" --weights "$WEIGHTS" --output "$SEED_OUTPUT"
 ```
 
+The scheduler retried the final evaluation allocation once under the same job ID (457462). The first allocation exited 1:0 before an evaluation plan was recorded; restart 1 produced the plan on the same Forge eval ID. There was no second submission or change to the evaluation protocol.
+
 ## nano-h16-suturebot-eval-s0
 
 Slide 18, checkpoint **0** (`Cosmos3-Nano/model`, regular); model metadata SHA-256 `21dea15c9aac109bbd0c0b6efa55df101fb21b33f1264a0b284b7ea4c84481ae`. Job **446447**, [Forge eval 37589c88](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/37589c88), finished; verified against the online plan and summary files. Same code, launcher, panel and three-seed command as above.
@@ -88,3 +90,7 @@ Slide 18, checkpoint **10,000** (`iter_000010000/model`, ema); model metadata SH
 ## nano-h16-suturebot-eval-s25000
 
 Slide 18, checkpoint **25,000** (`iter_000025000/model`, ema); model metadata SHA-256 `e6c7259bb932e3f6a482624fa704f14312436f61572c16245a1cd0037d4dd31a`. Job **455477**, [Forge eval 54ada1d4](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/54ada1d4), finished; verified against the online plan and summary files. **Provisional** under the 27 Nov 10:22 PT named order. The online plan includes the pre-submission gate output. Same evaluation code, panel and three-seed command as above; ordered launcher SHA-256 `3e0a4cb365a5d1dc02b76786325752e21f589caf7f580d45339c739b5f0d81c8`, executed SHA-256 `eb898ee8d3a49ee2c95190f0524d931f23fefe69949a9567987061a3a85c4fbc`.
+
+## nano-h16-suturebot-eval-s50000
+
+Slide 18, checkpoint **50,000** (`iter_000050000/model`, ema); model metadata SHA-256 `a0f7a9ead0d9568165f0ce00c2a709e9d8d70845f1027f53344a3acdfdbfb008`. Job **457462**, [Forge eval c4450cec](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/c4450cec), running as of 2026-11-27 14:46 PT; scores pending. **Provisional** under the 27 Nov 10:22 PT named order. The online plan includes the pre-submission gate output. Same evaluation code, panel and three-seed command as above; ordered launcher SHA-256 `3e0a4cb365a5d1dc02b76786325752e21f589caf7f580d45339c739b5f0d81c8`, executed SHA-256 `eb898ee8d3a49ee2c95190f0524d931f23fefe69949a9567987061a3a85c4fbc`.
