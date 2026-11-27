@@ -36,6 +36,8 @@ Set `OPENH_DATA_ROOT` to the release team's processed copies, laid out at the pu
 1. **Provenance and integrity:** resolve all 41 public roots from the pinned family config (including missing roots), the `indices` folder, and the released weights folder `Cosmos3-H-Embodied-Nano`. Run `data_gate.py roots` on the launcher and `data_gate.py check` on the complete set, including any additional discovered folders. The launcher’s `--check-stamps` does this resolution; scanning the shell text alone misses variable-expanded paths. Every input folder needs an owner-approved `kosher: yes` README, at least three corroborating sources, and a matching manifest. An empty root list is not a pass.
 2. **Publication:** the owner must have published all 41 prepared roots and the nonempty `indices/cmr_valid_windows_c24_stride8_reject_any_v2.npz`. The launcher’s `--check-data` checks the expected layout and index, not their provenance. A raw download or a layout check alone does not qualify.
 
+**Weight clearance:** use the released DCP only after the weights owner verifies that it represents the published step-50,000 network from the final release job and clears its folder. Matching the public download alone does not establish that final-job provenance. Do not substitute another step-50,000 checkpoint.
+
 **November 27, team-copy layout:** the stamp check exited 1. None of the 41 public roots or the index folder had a README, the released weights were marked `kosher: no`, and the CMR index was missing. The earlier 5/41 layout count was for local builds, not these inputs. No job ID or measured result exists.
 
 **Split:** use `val` as resolved by the pinned release loader, including its shipped exclusions; no custom split or overlay. The release config uses split seed 42 and a 0.05 validation fraction. **Realized split/clip manifest SHA-256: pending.** There is no complete manifest of the evaluated clips before publication and evaluation. A hash of the config would not identify the actual clips.
@@ -62,6 +64,8 @@ done
 ```
 
 The 40 invocations use the same 640 distinct clips: 64 per family, 25 frames and 24 predicted action rows per clip. Seeds `20260908`, `20260909`, and `20260910` each run **all three modes** to measure the slide 28 noise floor. Seed `20260911` adds **policy only**, retaining the README's four policy rollouts without counting the fourth seed in that noise floor. Every invocation uses 35 sampling steps and guidance 6.0.
+
+**Published reference, not a result of this run:** the [evaluation README, All row](cosmos3_h_embodied/README_EVALUATION.md#all-modes-on-held-out-clips) reports FD PSNR **26.09 dB**, ID MSE **0.0087**, policy MSE **0.0518 / 0.0331** (mean / best of four), policy PSNR **23.00 / 23.88 dB**, and baseline MSE **0.0747**. Compare these with slide 10, not with the three-seed average.
 
 **Scoring.** Use `load_runs`, `seed_spread` and `summarize` from the pinned `tools/benchmark/summarize_eval.py`. For each of the first three seeds in turn, validate its complete joint result against the other three seeds' policy rows with `seed_spread` (64 matched clip IDs per family, finite scores, identical policy ground truth). Reject missing or extra modes, duplicate scores, or changed clips; do not silently average partial outputs.
 
