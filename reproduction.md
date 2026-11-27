@@ -2,9 +2,15 @@
 
 Match evidence by title: the Arm C vs A comparison moved 26 → 38 → 40, and the alive, harmless and used checks moved 27 → 39 → 41 (17:12 PT deck manifest). Earlier numbers in run sections are historical. The original numbers below identify the run records. The three short diagnostics are not policy results or export candidates.
 
+**Input provenance — blocked (26 Nov 2026).** All experimental measurements and checkpoints in this ledger are provisional, including the Arm A/B controls, the internal reference, and the two policy contrasts. The input check on the resolved control configuration failed for all seven registered roots: none had the required README. The released start weights, the Arm A evaluation weights, and both contrast track folders also lacked it. The split fingerprint and export receipts below document what ran; they do not establish that the inputs match the reference team's training copy. Do not use these records to launch or resume a run until all its inputs pass the data gate.
+
+## `suturebot-camp` — final policy (slides 40 and 41)
+
+**State:** not submitted; no job or W&B run. The data gate failed. The separate, preregistered four-seed checkpoint rule below has **not** been judged on the final selection. No final export was consumed; the two existing contrasts are not substitutes for this run. No step-2,000 treatment score or memory-use verdict is available.
+
 ## `suturebot-camp-pretrain` — slides 26 and 27
 
-**State:** running; step 3,050 logged locally (Forge 3,000 at 2026-11-26 17:42 PT), cap 20,000. Slurm job **443703**. No selected-checkpoint gate verdict or downstream result yet.
+**State:** running; step 3,350 logged locally (Forge 3,300 in the 26 Nov 2026 18:18 PT snapshot), cap 20,000. Provisional; no resume or new measurement while the data gate is closed. Slurm job **443703**. No selected-checkpoint gate verdict or downstream result yet.
 
 - Branch `ohalimi/suturebot-camp`, clean code commit `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff. The later dictionary readout rebuild at `c35b0c0d633b3e21a5954cb20a2ddde0ecadd2b9` is **not** the training revision.
 - W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / 9qq6q9tb` ([run and reproduction files](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/9qq6q9tb)).
@@ -60,7 +66,7 @@ Three-seed result (original / new / new): future policy MSE **0.010556991 / 0.02
 
 ## `suturebot-camp-northstar` — slides 38 and 39
 
-**State:** running, Forge through step 680; job **446185** (accounting RUNNING, exit 0:0). W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / gi9bk1rd` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/gi9bk1rd)).
+**State:** running, provisional; Forge through step 800 (26 Nov 2026 18:18 PT snapshot); job **446185** (accounting RUNNING, exit 0:0). W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / gi9bk1rd` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/gi9bk1rd)).
 
 - Policy branch `ohalimi/suturebot-camp`, clean commit `8574545341f42ddafb1b20ddf52355386d6330fd`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff. `sbatch <project-root>/<verified-comparison-launcher>`; executed SHA-256 `072936866285268bf09b7630be527815ee75af95b81b5fac78f9b9687d7b3aeb`, source `c31cdd9a7c66cc36105289762c4e0502b02ff07cff26796e4a16b359a5c3cb90`. Full train/validation, joint and paired logs are retained; the run’s `repro/` holds the actual train command and resolved launch inputs.
 - Released start `h16_50000_dcp`, trainer seed 0, 2,000 steps, eight nodes × four ranks, same callbacks, save and validation cadence as A. Same seven roots listed above, train/val split seed 42, registered manifest `e702f9c54d8a95d69d942459f19445936b401f9b1ab65f6e523daea9850569de`. Three frozen 20D rows precede the 16 H16 history rows. Manifest SHA-256 `1baa12dfebea9646b040f547fb889ffe0d79f49b106f71037cea3afecf1d44d0`, verified export receipt `336599232a615b37b9ffc8d1d25cf2ae16ec95c1228091620f243fb105c6ce4d`.
@@ -71,7 +77,7 @@ Three-seed result (original / new / new): future policy MSE **0.010556991 / 0.02
 
 ## `suturebot-camp-public-s2500` — slides 38 and 39
 
-**State:** running, Forge through step 180; job **446395** (accounting RUNNING, exit 0:0). W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / j2wkbhyf` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/j2wkbhyf)).
+**State:** running, provisional; Forge through step 300 (26 Nov 2026 18:18 PT snapshot); job **446395** (accounting RUNNING, exit 0:0). W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / j2wkbhyf` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/j2wkbhyf)).
 
 - Policy branch `ohalimi/suturebot-camp`, clean commit `8574545341f42ddafb1b20ddf52355386d6330fd`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff. `sbatch <project-root>/<verified-comparison-launcher>`; executed SHA-256 `6e88e3b9bf9ff58753eb90a4de320c7e16472edd0382dc61afc1230e35c87211`, source `6e5a6b44027caf75357756a94eb3030f99d5a0c627e0fd5c139ddec5a8b84d79`. Full train/validation, joint and paired logs are retained; the run’s `repro/` holds the actual train command and resolved launch inputs.
 - Released start `h16_50000_dcp`, trainer seed 0, 2,000 steps, eight nodes × four ranks, same callbacks, save and validation cadence as A. Same seven roots listed above, train/val split seed 42, registered manifest `e702f9c54d8a95d69d942459f19445936b401f9b1ab65f6e523daea9850569de`. Three frozen 20D rows precede the 16 H16 history rows. Manifest SHA-256 `106e7077583647a5a5c601a0988a6eb1c55dbc06b27132471d54c4d12523945e`, verified export receipt `6fd0a3881bdd124a1a3c85c9bd217b06fff186cef7596600f9da8da364b86479`.
