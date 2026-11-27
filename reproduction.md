@@ -73,7 +73,7 @@ Slide 18, checkpoint **100** (`iter_000000100/model`, ema); model metadata SHA-2
 
 ## nano-h16-suturebot-eval-s1000
 
-Slide 18, checkpoint **1,000** (`iter_000001000/model`, ema); model metadata SHA-256 `d5058119de32ea6e5cd5a24ea216356da071abf3d0b30bbb52ab8446cf925996`. Job **446451**, [Forge eval 384348b5](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/384348b5), running as of 2026-11-26 17:52 PT; scores pending. Same code, launcher, panel and three-seed command as above.
+Slide 18, checkpoint **1,000** (`iter_000001000/model`, ema); model metadata SHA-256 `d5058119de32ea6e5cd5a24ea216356da071abf3d0b30bbb52ab8446cf925996`. Job **446451**, [Forge eval 384348b5](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/384348b5), finished; verified against the online plan and summary files. Same code, launcher, panel and three-seed command as above.
 
 ## nano-h16-suturebot-eval-s5000
 
