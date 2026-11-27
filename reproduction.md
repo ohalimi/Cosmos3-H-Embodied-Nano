@@ -69,7 +69,7 @@ Slide 18, checkpoint **0** (`Cosmos3-Nano/model`, regular); model metadata SHA-2
 
 ## nano-h16-suturebot-eval-s100
 
-Slide 18, checkpoint **100** (`iter_000000100/model`, ema); model metadata SHA-256 `73c7a75272d6a1717fb2b576e63e34c57f6efcf1a4424ea17775e3e94f161928`. Job **446449**, [Forge eval bf5edf36](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/bf5edf36), running as of 2026-11-26 17:52 PT; scores pending. Same code, launcher, panel and three-seed command as above.
+Slide 18, checkpoint **100** (`iter_000000100/model`, ema); model metadata SHA-256 `73c7a75272d6a1717fb2b576e63e34c57f6efcf1a4424ea17775e3e94f161928`. Job **446449**, [Forge eval bf5edf36](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/bf5edf36), finished; verified against the online plan and summary files. Same code, launcher, panel and three-seed command as above.
 
 ## nano-h16-suturebot-eval-s1000
 
@@ -77,7 +77,7 @@ Slide 18, checkpoint **1,000** (`iter_000001000/model`, ema); model metadata SHA
 
 ## nano-h16-suturebot-eval-s5000
 
-Slide 18, checkpoint **5,000** (`iter_000005000/model`, ema); model metadata SHA-256 `91a5cfe95b1689f9745259786fb53c997da993ffbb8fe42fe525600c31573adb`. Job **446453**, [Forge eval 8cebe80a](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/8cebe80a), running as of 2026-11-26 17:52 PT; scores pending. Same code, launcher, panel and three-seed command as above.
+Slide 18, checkpoint **5,000** (`iter_000005000/model`, ema); model metadata SHA-256 `91a5cfe95b1689f9745259786fb53c997da993ffbb8fe42fe525600c31573adb`. Job **446453**, [Forge eval 8cebe80a](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/8cebe80a), finished; verified against the online plan and summary files. Same code, launcher, panel and three-seed command as above.
 
 ## nano-h16-suturebot-eval-s10000
 
