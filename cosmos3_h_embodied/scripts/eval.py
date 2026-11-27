@@ -66,6 +66,8 @@ class EvalArgs(pydantic.BaseModel):
     spread_samples: bool = False
     """Take the ``dataset.num_samples`` samples evenly spaced over the split instead of the first
     ones (the split lists each root's episodes in order, so the first samples come from few episodes)."""
+    panel: Path | None = None
+    """Replay exact held-out episode/window identities; do not substitute samples on decode failure."""
     gt_dir: Path | None = None
     """Directory of ground-truth videos. Required for vision eval."""
     predictions_dir: Path | None = None
@@ -102,6 +104,12 @@ def eval_action(args: EvalArgs) -> list[SampleOutputs]:
         # create_dataset takes the first num_samples ids; select evenly spaced ones instead.
         ids = samples._sample_ids
         samples._sample_ids = [ids[i] for i in np.unique(np.linspace(0, len(ids) - 1, num_samples).round().astype(int))]
+    if args.panel is not None:
+        if args.dataset.dataset_split != "val" or num_samples is not None or args.spread_samples:
+            raise ValueError("panel replay requires full validation dataset selection")
+        from tools.benchmark.heldout_panel import exact_samples
+
+        samples = exact_samples(samples, args.dataset.dataset, json.loads(args.panel.read_text()))
     log.info(f"Loaded {len(samples)} samples in memory")
 
     pipe = setup.get_inference_cls().create(setup)
