@@ -2,7 +2,7 @@
 
 ## nano-h16-suturebot
 
-**Running at step 18,170 of 50,000** (Forge, 26 Nov 2026 15:53 PT); the latest complete save at this check was 18,100. Slide 6 asks what the public H16 recipe learns from SutureBot alone. Slide 7's held-out result is pending: a training validation loss is not a rollout score.
+**Running at step 20,280 of 50,000** (Forge, 26 Nov 2026 17:24 PT); the latest complete save at this check was 20,200. The evaluation inputs at steps 0 (Cosmos3-Nano), 100, 1,000, 5,000 and 10,000 are present. Steps 25,000 and 50,000 have not been saved. Slides 7 and 18 have no held-out scores from this run yet: a training validation loss is not a rollout score.
 
 | Job | Starting state | Outcome |
 | --- | --- | --- |
