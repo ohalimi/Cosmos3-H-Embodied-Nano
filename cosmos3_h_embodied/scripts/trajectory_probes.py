@@ -14,7 +14,9 @@ FACTORS = ('mixed-root-batches', 'no-camera', 'internal-action-scaling', 'fast-l
            'wide-hidden', 'frequency-decay', 'short-dct-window', 'single-consistency-lag', 'cap-sequences',
            'clipped-z-actions', 'unclipped-quantile-actions', 'squared-training-assignment',
            'matrix-center-sums', 'multiply-add-ema', 'divide-first-smoothing', 'single-precision-basis',
-           'independent-camera-init', 'embedding-init-draws', 'center-training-crop', 'independent-vq-draws')
+           'independent-camera-init', 'embedding-init-draws', 'center-training-crop', 'independent-vq-draws',
+           'repeat-right-padding', 'stacked-target-windows', 'anchor-only-projection',
+           'full-window-overlap', 'auxiliary-last-sum', 'bandwise-error-reduction')
 PROBE_STEPS = (600, 800, 1000)
 
 

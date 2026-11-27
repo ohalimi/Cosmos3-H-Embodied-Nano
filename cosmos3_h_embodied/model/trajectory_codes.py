@@ -7,6 +7,7 @@ KuanchengWang/CAMP@656554ae750fa5d6ff6f06a104d3d0b9e38ffbde.
 """
 
 import math
+from typing import NamedTuple
 
 import torch
 from torch import Tensor, nn
@@ -177,6 +178,19 @@ class EpisodeDictionary(nn.Module):
         return straight_through, .25 * F.mse_loss(observed, selected[valid])
 
 
+class _DeferredProjection(NamedTuple):
+    states: Tensor
+
+
+def _repeat_suffix(tensor, lengths):
+    # A single padded batch, same shape and order. Delay actions before repeating the last *input*.
+    out = tensor.clone()
+    for i, n in enumerate(lengths.tolist()):
+        if n < out.size(1):
+            out[i, n:] = tensor[i, n-1:n]
+    return out
+
+
 class TrajectoryCodes(nn.Module):
     """Two DCT readouts: continuous-state primary, projected-code auxiliary."""
 
@@ -184,6 +198,7 @@ class TrajectoryCodes(nn.Module):
         super().__init__()
         if window < N_BANDS:
             raise ValueError('past window cannot be shorter than the basis')
+        self.recipe_factor = numeric_factor
         self.gamma = gamma
         self.offsets = offsets
         # Preserve the ordinary MSE kernel when unweighted. Diagnostic weights are
@@ -231,14 +246,26 @@ class TrajectoryCodes(nn.Module):
                 parts.append(encode(*inputs))
         return torch.cat((torch.cat(parts).reshape(batch, steps, -1), previous_action), dim=-1)
 
-    def forward(self, rgb, proprio, action, lengths):
-        f = self.features(rgb, proprio, F.pad(action[:, :-1], (0, 0, 1, 0)))
+    def forward(self, rgb, proprio, action, lengths, *, for_loss=False):
+        previous = F.pad(action[:, :-1], (0, 0, 1, 0))
+        if self.recipe_factor == 'repeat-right-padding':
+            rgb, proprio, previous = (_repeat_suffix(x, lengths) for x in (rgb, proprio, previous))
+        f = self.features(rgb, proprio, previous)
         h, _ = self.recurrent(f)
         mask = torch.arange(h.size(1), device=h.device) < lengths.to(h.device)[:, None]
         q, commitment = self.dictionary(h, mask)
+        if for_loss and self.recipe_factor == 'anchor-only-projection':
+            return h, _DeferredProjection(q), commitment
         return h, self.to_rows(q), commitment
 
     def _reconstruction_error(self, prediction, target):
+        if self.recipe_factor == 'bandwise-error-reduction':
+            # The public recipe has equal weights. Retain the per-band sum and divide
+            # at the end rather than pooling all dimensions in one MSE reduction.
+            by_band = (prediction - target).square().mean(-1)
+            if self.band_weights is not None:
+                return (by_band * self.band_weights).sum(-1).mean()
+            return by_band.sum(-1).mean() / by_band.size(-1)
         if self.band_weights is None:
             return F.mse_loss(prediction, target)
         # Global mean of the per-coordinate MSE, with a normalized weighted band axis.
@@ -256,15 +283,36 @@ class TrajectoryCodes(nn.Module):
         if not anchors.numel() or int(anchors.min()) < 1 or int(anchors.max()) >= end:
             raise ValueError('anchors must follow a real sample and precede padding')
         w = self.basis.size(0)
-        slots = anchors[:, None] + torch.arange(1 - w, 1, device=anchors.device)
-        targets = torch.einsum('wk,bmwd->bmkd', self.basis, trajectory[:, slots.clamp_min(0)])
+        if self.recipe_factor == 'stacked-target-windows':
+            windows = []
+            for t in anchors.tolist():
+                start = max(0, t + 1 - w)
+                chunk = trajectory[:, start:t+1]
+                if chunk.size(1) < w:
+                    chunk = torch.cat((trajectory[:, :1].expand(-1, w-chunk.size(1), -1), chunk), 1)
+                windows.append(chunk)
+            past = torch.stack(windows, dim=1)
+        else:
+            slots = anchors[:, None] + torch.arange(1 - w, 1, device=anchors.device)
+            past = trajectory[:, slots.clamp_min(0)]
+        targets = torch.einsum('wk,bmwd->bmkd', self.basis, past)
         pred = self.hidden_readout(hidden[:, anchors]).unflatten(-1, (N_BANDS, WIDTH))
-        aux = self.code_readout(code[:, anchors]).unflatten(-1, (N_BANDS, WIDTH))
+        rows = self.to_rows(code.states[:, anchors]) if isinstance(code, _DeferredProjection) else code[:, anchors]
+        aux = self.code_readout(rows).unflatten(-1, (N_BANDS, WIDTH))
         # For chronologically ordered windows the later prefix is the earlier suffix.
         terms = []
         for lag in self.offsets:
             keep = anchors + lag < end
             if lag < w and keep.any():
+                if self.recipe_factor == 'full-window-overlap':
+                    # Preserve equal weight per active lag, not per (lag, anchor) pair.
+                    pairs = []
+                    for t in anchors[keep].tolist():
+                        a, b = (self.hidden_readout(hidden[:, j]).unflatten(-1, (N_BANDS, WIDTH)) for j in (t, t+lag))
+                        a, b = (torch.einsum('wk,bkd->bwd', self.basis, c) for c in (a, b))
+                        pairs.append(F.mse_loss(a[:, lag:], b[:, :-lag]))
+                    terms.append(torch.stack(pairs).mean())
+                    continue
                 other = self.hidden_readout(hidden[:, anchors[keep] + lag]).unflatten(-1, (N_BANDS, WIDTH))
                 early = torch.einsum('wk,bmkd->bmwd', self.basis[lag:], pred[:, keep])
                 late = torch.einsum('wk,bmkd->bmwd', self.basis[:-lag], other)

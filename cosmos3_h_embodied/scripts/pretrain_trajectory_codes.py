@@ -109,10 +109,16 @@ def validation(model, obs, pool, rng, device):
     model.eval()
     with torch.inference_mode():
         images, pos, act, lengths = obs.batch(pool, rng, min(16, len(pool)), device)
-        h, code, commit = model(images, pos, act, lengths)
+        h, code, commit = model(images, pos, act, lengths, for_loss=True)
         end = int(lengths.min()) - 1
         anchors = torch.tensor([max(1, end//2), end], device=device)
         return model.losses(h, code, commit, pos, anchors, lengths)['reconstruction'].item()
+
+
+def total_loss(terms, factor):
+    if factor == 'auxiliary-last-sum':
+        return terms['reconstruction'] + terms['overlap'] + terms['commitment'] + terms['code_reconstruction']
+    return sum(terms.values())
 
 
 def make_optimizer(model, factor):
@@ -167,12 +173,12 @@ def pretrain(config, out, device, log=None, factor=None):
     for step in range(first, 1001 if factor else 20001):
         model.train()
         images, pos, act, lengths = train_obs.batch(tr, rng, 8, device, step if factor == 'mixed-root-batches' else None)
-        h, code, commit = model(images, pos, act, lengths)
+        h, code, commit = model(images, pos, act, lengths, for_loss=True)
         end = int(lengths.min()) - 1
         lo = min(16, end - 1)
         anchors = torch.tensor(sorted(rng.sample(range(lo, end+1), min(4, end-lo+1))), device=device)
         terms = model.losses(h, code, commit, pos, anchors, lengths)
-        loss = sum(terms.values())
+        loss = total_loss(terms, factor)
         if not torch.isfinite(loss):
             raise FloatingPointError(f'nonfinite memory objective at step {step}')
         opt.zero_grad(set_to_none=True); loss.backward()
