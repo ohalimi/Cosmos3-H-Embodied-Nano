@@ -4,7 +4,7 @@ Slide numbering: the Arm C vs A comparison (originally 26) is now slide 38; the 
 
 ## `suturebot-camp-pretrain` — slides 26 and 27
 
-**State:** running; step 2,500 logged locally (Forge 2,450 at 2026-11-26 16:42 PT), cap 20,000. Slurm job **443703**. No selected-checkpoint gate verdict or downstream result yet.
+**State:** running; step 2,550 logged locally (Forge 2,500 at 2026-11-26 16:46 PT), cap 20,000. Slurm job **443703**. No selected-checkpoint gate verdict or downstream result yet.
 
 - Branch `ohalimi/suturebot-camp`, clean code commit `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff. The later dictionary readout rebuild at `c35b0c0d633b3e21a5954cb20a2ddde0ecadd2b9` is **not** the training revision.
 - W&B: `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / 9qq6q9tb` ([run and reproduction files](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/9qq6q9tb)).
@@ -29,7 +29,7 @@ These are controlled pretraining diagnostics, not policy runs or candidates for 
 
 ## `suturebot-camp-mixed-root-batches-1k` — slide 27 diagnostic
 
-**State:** running at step 550; job **445349**. Forge running, step 500.
+**State:** running at step 600; job **445349**. Forge running, step 500.
 
 - Branch `ohalimi/suturebot-camp`, commit `193c90b64f870f068f711f711d2bd653dff717aa`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. Clean; no diff. W&B `holoscan-advanced-workflow-team / cosmos3_suturebot_memory / 3f8e443e` ([run](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/3f8e443e)).
 - Launch: `sbatch <project-root>/<verified-launch-script>`, executed SHA-256 `442424a8ea9ef86094f94830c944b1b3d31fde9fa8c0ba94e27c0110258cdf9f`. Underlying training command: `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --mixed-root-batches` with the online logger. Data, model seed, start, panel and probe cadence as above.
