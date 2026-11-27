@@ -99,8 +99,8 @@ def construct(window, device, camera=True, *, factor=None):
     if camera and factor == 'center-training-crop':
         encoder.center_training_crop = True
     return TrajectoryCodes(encoder, dim, 512 if factor == 'short-dct-window' else window,
-                           hidden_width=128 if factor == 'wide-hidden' else HIDDEN,
-                           gamma=1. if factor == 'frequency-decay' else 0.,
+                           hidden_width=128 if factor in ('wide-hidden', 'fast-wide-hidden') else HIDDEN,
+                           gamma=1. if factor in ('frequency-decay', 'fast-frequency-decay') else 0.,
                            offsets=(16,) if factor == 'single-consistency-lag' else OFFSETS,
                            numeric_factor=factor).to(device)
 
@@ -122,7 +122,7 @@ def total_loss(terms, factor):
 
 
 def make_optimizer(model, factor):
-    lr = 1e-3 if factor == 'fast-learning-rate' else 1e-4
+    lr = 1e-3 if factor in ('fast-learning-rate', 'fast-wide-hidden', 'fast-frequency-decay') else 1e-4
     return torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
 
 
