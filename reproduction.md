@@ -2,9 +2,9 @@
 
 ## nano-h16-suturebot
 
-**Running, 26 Nov 2026 18:29 PT.** Job 442417 is on the original Forge run. The latest verified complete checkpoint was **21,700 of 50,000** (model, optimizer, scheduler and trainer metadata). The five evaluations through step 10,000 have finished. The 25,000 and 50,000 evaluations have not been submitted.
+**Running, 26 Nov 2026 20:45 PT.** Job 442417 is on the original Forge run. The latest pointer named the retained checkpoint **25,000 of 50,000**. All four components (model, optimizer, scheduler and trainer) had nonempty metadata; the model had 64 nonempty shards. The five evaluations through step 10,000 have finished. **Step 25,000 is saved but not scored:** the input gate failed, so there is no evaluation job or evaluation run ID. Step 50,000 has not been saved.
 
-**Data gate: failed.** Neither training root nor the Cosmos3-Nano start weights had the required README. Both training attempts, their checkpoints, and all Slide 7 and 18 results derived from them are **provisional**. The four held-out evaluations through step 5,000 finished before the hold; step 10,000 was already running. Do not repeat them or submit a new evaluation, training job or resume unless the gate passes for every input. Completion and matching digests establish what ran, not that the inputs match the reference team’s data.
+**Data gate: failed.** At the 25,000 check both dataset READMEs and the Cosmos3-Nano README explicitly said `kosher: no`; the retained checkpoint directory had no README. Both training attempts, their checkpoints, and all Slide 7 and 18 results derived from them are **provisional**. The existing training job continues; no new training or evaluation may be submitted unless the gate passes for every input. Completion and matching digests establish what ran, not that the inputs match the reference team's data.
 
 | Job | Starting state | Outcome |
 | --- | --- | --- |
