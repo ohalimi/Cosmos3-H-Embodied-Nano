@@ -9,7 +9,7 @@ This single evaluation of the **released H16 checkpoint at step 50,000** serves 
 | Evaluation branch / pinned code | `ohalimi/release-all-modes` / `48fd710163aca224e5f1a65e55132a16b8460c48` (clean detached checkout required) |
 | Framework | `cosmos-framework`, `7cfaf7854b2114eda5deb36250a7e8f00c64d69e` at preflight; record the actual revision at launch |
 | Start checkpoint | Released `Cosmos3-H-Embodied-Nano/h16_50000_dcp/model` (DCP) |
-| Local launcher SHA-256 | `afae9dadca2af5c48d7501fb4232752c2a94edfd2e54abdf0187eb798c16b466` (three joint seeds plus a fourth policy rollout) |
+| Planned launcher SHA-256 | `aee5cee73212e33240f29ac8d0c2fcc48cf1cdb9245d9f2088378e9d0a53e37b` (stamp and publication preflight; three joint seeds plus a fourth policy rollout) |
 | Job IDs, including retries | None; not submitted |
 | W&B | Configured entity/project: `holoscan-advanced-workflow-team/cosmos3_suturebot_memory`; no run ID or run URL |
 | Runtime diff | None; the pinned evaluation checkout passed the clean-tree check |
@@ -31,13 +31,18 @@ Use the public roots in `cosmos3_h_embodied/configs/openh_datasets.py` at the pi
 | `dvrk_ucsd` | `ucsd/` | `surgical_learning_dataset2`, `surgical_learning_dataset` |
 | `turin_mitic` | `turin/` | `mitic_lerobot_plastic_tube`, `mitic_lerobot_ex_vivo`, `mitic_lerobot_plastic_pad`, `mitic_lerobot_plastic_pad_3dmed` |
 
-Submit once, only after the data owner publishes **all 41 prepared roots** and the nonempty `indices/cmr_valid_windows_c24_stride8_reject_any_v2.npz`, and the pinned launcher's `--check-data` exits 0. At 15:15 PT on November 26, 2026 it exited 3: only 5/41 roots (all JHU) and no index. Raw downloads do not satisfy this gate.
+**Two checks must pass before submission.**
+
+1. **Provenance and integrity:** resolve all 41 public roots from the pinned family config (including missing roots), the `indices` folder, and the released weights folder `Cosmos3-H-Embodied-Nano`. Run `data_gate.py roots` on the launcher and `data_gate.py check` on the complete set, including any additional discovered folders. The launcher’s `--check-stamps` does this resolution; scanning the shell text alone misses variable-expanded paths. Every input folder needs an owner-approved `kosher: yes` README, at least three corroborating sources, and a matching manifest. An empty root list is not a pass.
+2. **Publication:** the owner must have published all 41 prepared roots and the nonempty `indices/cmr_valid_windows_c24_stride8_reject_any_v2.npz`. The launcher’s `--check-data` checks the expected layout and index, not their provenance. A raw download or a layout check alone does not qualify.
+
+On November 26 neither check passed: no README in any of the 43 resolved input folders (stamp check exit 1); 5/41 prepared roots, all in JHU, and no CMR index (publication check exit 3). No results or job IDs exist for this evaluation.
 
 **Split:** use `val` as resolved by the pinned release loader, including its shipped exclusions; no custom split or overlay. The release config uses split seed 42 and a 0.05 validation fraction. **Realized split/clip manifest SHA-256: pending.** There is no complete manifest of the evaluated clips before publication and evaluation. A hash of the config would not identify the actual clips.
 
 ### Planned invocation and scoring
 
-Run from the pinned checkout in the matching framework environment. The placeholders below are public data, the released checkpoint directory, and a new output directory respectively. The one-node launcher distributes these independent family/seed invocations across four GPUs; it does not shard a single rollout. Its planned submission command is `sbatch <launcher-with-SHA-256-above>`.
+Run from the pinned checkout in the matching framework environment. The placeholders below are public data, the released checkpoint directory, and a new output directory respectively. The one-node launcher distributes these independent family/seed invocations across four GPUs; it does not shard a single rollout. Immediately before allocating the node, confirm that no prior job exists for this token and run `bash "$launcher" --preflight && sbatch "$launcher"`, where `launcher` names the file with the SHA-256 above. `--preflight` must exit 0; the job checks the inputs again at startup.
 
 ```bash
 export OPENH_DATA_ROOT='<prepared-public-data>'
