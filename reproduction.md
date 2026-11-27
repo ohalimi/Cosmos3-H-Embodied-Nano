@@ -91,7 +91,7 @@ Same seven registered roots, split manifest `e702f9c54d8a95d69d942459f19445936b4
 
 ### `suturebot-camp-diagnosis-public-fast-lr-1k`
 
-- State: running, last local counter step 450/1,000. Slurm job **445815**.
+- State: running, last local counter step 600/1,000. Slurm job **445815**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `703f0d922e1f7801369c42be916c683cc97a37a9`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`7e2526e3`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/7e2526e3); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `a9917072e6b2cb5d39b40ae171a8c64aa3359ffc90aa5254b34a757fc38ea0e3`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --fast-learning-rate` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
@@ -133,42 +133,42 @@ Same seven registered roots, split manifest `e702f9c54d8a95d69d942459f19445936b4
 
 ### `suturebot-camp-diagnosis-public-wide-hidden-1k`
 
-- State: running, last local counter step 400/1,000. Slurm job **445841**.
+- State: running, last local counter step 550/1,000. Slurm job **445841**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `8190b91bf61793cd553d2c4817aebbcbe56ae388`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`d2cf1baa`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/d2cf1baa); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `bb30ee964660de152bb6193189bd4b87c5e202ee3693b183b332d393bc22ae57`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --wide-hidden` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-frequency-decay-1k`
 
-- State: running, last local counter step 400/1,000. Slurm job **445843**.
+- State: running, last local counter step 550/1,000. Slurm job **445843**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `8190b91bf61793cd553d2c4817aebbcbe56ae388`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`86bfa8b1`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/86bfa8b1); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `9f7fa833aec719b37fbcda0992fd8b004db9814c179e0b50f4cf28957cb5bbff`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --frequency-decay` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-short-dct-window-1k`
 
-- State: running, last local counter step 400/1,000. Slurm job **445845**.
+- State: running, last local counter step 600/1,000. Slurm job **445845**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `8190b91bf61793cd553d2c4817aebbcbe56ae388`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`5df5ec91`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/5df5ec91); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `76eeedd7e45e11b41cb0f4b5b8182d3b33c4dcb6a1fb827c84667954f747b465`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --short-dct-window` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-single-consistency-lag-1k`
 
-- State: running, last local counter step 350/1,000. Slurm job **445847**.
+- State: running, last local counter step 550/1,000. Slurm job **445847**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `8190b91bf61793cd553d2c4817aebbcbe56ae388`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`26c133c9`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/26c133c9); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `9e1e582274f0b16b08bcbe6ec0f583760afcc7c943d61fdd10b829a2eab579be`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --single-consistency-lag` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-cap-sequences-1k`
 
-- State: running, last local counter step 400/1,000. Slurm job **445849**.
+- State: running, last local counter step 550/1,000. Slurm job **445849**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `8190b91bf61793cd553d2c4817aebbcbe56ae388`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`69a6f732`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/69a6f732); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `cc3991a0f9b4dc03944e350f68bfd3d3313974fbad769f578da9426e17f46808`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --cap-sequences` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-reference-with-camera-1k`
 
-- State: running, last local counter step 350 / 1,000, Slurm job **445881**.
+- State: running, last local counter step 500 / 1,000, Slurm job **445881**.
 - Not reproducible from public git by request: in-place commit `8347c01eb179d86a12f312dc522ace41bacf6c10`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`; uncommitted private instrumentation, no source diff distributed. Public reader `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`. Ledger branch `ohalimi/suturebot-camp-diagnosis`.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`b58bef67`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/b58bef67).
 - Launch: `sbatch <project-root>/<verified-diagnostic-script>`, executed script SHA-256 `9b0bc498a7c33f43a80af876877937bd6f2a9783cfeb7b43477e81ec6d652032`. In-place registered adapter `train --seed 0 --steps 1000 --device cuda (with left-camera front end)`. Data and protocol as above.
@@ -196,14 +196,14 @@ Same seven registered roots, split manifest `e702f9c54d8a95d69d942459f19445936b4
 
 ### `suturebot-camp-diagnosis-public-clipped-z-actions-1k`
 
-- State: running, last local counter step 350/1,000. Slurm job **445892**.
+- State: running, last local counter step 550/1,000. Slurm job **445892**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `e99bc8f1230c170ff1ca917c0bde9ba3048b9238`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`668a33f3`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/668a33f3); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `3b1ac19dff17d5364d0d99156c8cf6f9e2eff260e7cf085b4e0036c739c052cc`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --clipped-z-actions` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-unclipped-quantile-actions-1k`
 
-- State: running, last local counter step 350/1,000. Slurm job **445894**.
+- State: running, last local counter step 500/1,000. Slurm job **445894**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `e99bc8f1230c170ff1ca917c0bde9ba3048b9238`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`a6488ea1`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/a6488ea1); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `85fa809e4f3fb20fe1afecffb6b3b84117f01314b59382a8f52a787db6b3cde6`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --unclipped-quantile-actions` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
@@ -280,70 +280,70 @@ Same seven registered roots, split manifest `e702f9c54d8a95d69d942459f19445936b4
 
 ### `suturebot-camp-diagnosis-public-squared-training-assignment-1k`
 
-- State: running, last local counter step 300/1,000. Slurm job **445938**.
+- State: running, last local counter step 500/1,000. Slurm job **445938**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `f62327a8f81d7e012059b8dce060c4c622a76fd1`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`760b3334`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/760b3334); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `150e76a1659a0a67187ce6ca4280ef71de1b52485d8c1ff7a1c015a740a38efd`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --squared-training-assignment` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-independent-camera-init-1k`
 
-- State: running, last local counter step 250/1,000. Slurm job **445954**.
+- State: running, last local counter step 450/1,000. Slurm job **445954**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `d8992661e703f43cf87ad9021fb52076edf244ff`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`64338446`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/64338446); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `883cbc6f5ccb9b6f3e4a3b3155d113365957b64e61849c470685c216752cf5f3`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --independent-camera-init` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-embedding-init-draws-1k`
 
-- State: running, last local counter step 250/1,000. Slurm job **445956**.
+- State: running, last local counter step 450/1,000. Slurm job **445956**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `d8992661e703f43cf87ad9021fb52076edf244ff`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`379a41b9`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/379a41b9); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `f07460ee7c67ceec19c2032826a39d4b8e79154547031084ff85054569969d13`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --embedding-init-draws` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-center-training-crop-1k`
 
-- State: running, last local counter step 250/1,000. Slurm job **445958**.
+- State: running, last local counter step 450/1,000. Slurm job **445958**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `d8992661e703f43cf87ad9021fb52076edf244ff`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`5b778504`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/5b778504); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `563acaa81fc2509ba43373f61abbdec19f232debdaf6e27f90007df6fb3c1f25`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --center-training-crop` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-independent-vq-draws-1k`
 
-- State: running, last local counter step 250/1,000. Slurm job **445960**.
+- State: running, last local counter step 400/1,000. Slurm job **445960**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `d8992661e703f43cf87ad9021fb52076edf244ff`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`5a63dffa`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/5a63dffa); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `99ac9aee4196952858ac54975b4e11078135778440719ecae0280f5a641812f7`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --independent-vq-draws` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-matrix-center-sums-1k`
 
-- State: running, last local counter step 250/1,000. Slurm job **445965**.
+- State: running, last local counter step 450/1,000. Slurm job **445965**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `f62327a8f81d7e012059b8dce060c4c622a76fd1`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`4577350e`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/4577350e); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `2c8c9d20d131c3f6f877f5d6988dba65ee246b5883f881f28d5a71ae44b65a27`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --matrix-center-sums` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-multiply-add-ema-1k`
 
-- State: running, last local counter step 250/1,000. Slurm job **445969**.
+- State: running, last local counter step 450/1,000. Slurm job **445969**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `f62327a8f81d7e012059b8dce060c4c622a76fd1`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`90797bdf`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/90797bdf); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `57aedae3ef72c5a14e068b7d722a4940fda01a94d4d036dfd5270db01d24fb03`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --multiply-add-ema` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-divide-first-smoothing-1k`
 
-- State: running, last local counter step 250/1,000. Slurm job **445971**.
+- State: running, last local counter step 450/1,000. Slurm job **445971**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `f62327a8f81d7e012059b8dce060c4c622a76fd1`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`09e5e85a`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/09e5e85a); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `cedd435e61a6ef45bcd6edea011a8f4c5b633709eabe888acc87a072ba884f18`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --divide-first-smoothing` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-single-precision-basis-1k`
 
-- State: running, last local counter step 250/1,000. Slurm job **445973**.
+- State: running, last local counter step 450/1,000. Slurm job **445973**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `f62327a8f81d7e012059b8dce060c4c622a76fd1`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`e1074db2`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/e1074db2); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `943698e8b45fb0a8e1dab8b854f929d9e3dea6f3acd0acd732bad5828405f84b`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --single-precision-basis` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-reference-camera-center-crop-1k`
 
-- State: running, last local counter step 250 / 1,000, Slurm job **445975**.
+- State: running, last local counter step 450 / 1,000, Slurm job **445975**.
 - Not reproducible from public git by request: in-place commit `8347c01eb179d86a12f312dc522ace41bacf6c10`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`; uncommitted private instrumentation, no source diff distributed. Public reader `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`. Ledger branch `ohalimi/suturebot-camp-diagnosis`.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`472fb4d9`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/472fb4d9).
 - Launch: `sbatch <project-root>/<verified-diagnostic-script>`, executed script SHA-256 `1b15637f00fc88f24684f6f8b1cf761f7e3a7804667a7f0f4b601f208aba404d`. In-place registered adapter `train --seed 0 --steps 1000 --device cuda (single run-specific treatment: camera-center-crop)`. Data and protocol as above.
@@ -392,56 +392,56 @@ Same seven registered roots, split manifest `e702f9c54d8a95d69d942459f19445936b4
 
 ### `suturebot-camp-diagnosis-public-repeat-right-padding-1k`
 
-- State: running, last local counter step 200/1,000. Slurm job **446013**.
+- State: running, last local counter step 400/1,000. Slurm job **446013**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `1ca320bb75fbc98bd0e12aecef4fec084bf09306`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`8c3b0216`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/8c3b0216); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `9ede14eb6166db24d18117c565ca05446a5f2b232b5df4d05636874bcba86382`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --repeat-right-padding` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-stacked-target-windows-1k`
 
-- State: running, last local counter step 200/1,000. Slurm job **446016**.
+- State: running, last local counter step 400/1,000. Slurm job **446016**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `1ca320bb75fbc98bd0e12aecef4fec084bf09306`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`ea4364b7`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/ea4364b7); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `71938f0dd5b61bc1151ca4eece6cb3e21a70a9b7bf38f430a1f9b57579b9ed3b`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --stacked-target-windows` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-anchor-only-projection-1k`
 
-- State: running, last local counter step 200/1,000. Slurm job **446018**.
+- State: running, last local counter step 400/1,000. Slurm job **446018**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `1ca320bb75fbc98bd0e12aecef4fec084bf09306`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`67633b76`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/67633b76); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `09cf2a41ddda97c842bff5e82332bca059af648030decea0a096170d233f999a`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --anchor-only-projection` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-full-window-overlap-1k`
 
-- State: running, last local counter step 200/1,000. Slurm job **446020**.
+- State: running, last local counter step 400/1,000. Slurm job **446020**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `1ca320bb75fbc98bd0e12aecef4fec084bf09306`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`3cd0047e`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/3cd0047e); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `68dd5212312c3960ba5dd3082f7c948f69bd60f60ffcb5dd484f43f72c81952e`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --full-window-overlap` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-auxiliary-last-sum-1k`
 
-- State: running, last local counter step 200/1,000. Slurm job **446022**.
+- State: running, last local counter step 400/1,000. Slurm job **446022**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `1ca320bb75fbc98bd0e12aecef4fec084bf09306`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`5bc04dd2`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/5bc04dd2); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `35acb9a58087d0b49bd5b21aa1b5e3f8d8b2be9492419c1861feab5a74c593c9`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --auxiliary-last-sum` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-bandwise-error-reduction-1k`
 
-- State: running, last local counter step 200/1,000. Slurm job **446024**.
+- State: running, last local counter step 400/1,000. Slurm job **446024**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `1ca320bb75fbc98bd0e12aecef4fec084bf09306`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`b743eedf`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/b743eedf); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `33243b3364328439fc704b9023ed2ad57c7aa83946934b1e1b30439cac7c16b0`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --bandwise-error-reduction` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-fast-wide-hidden-1k`
 
-- State: running, last local counter step 200/1,000. Slurm job **446027**.
+- State: running, last local counter step 400/1,000. Slurm job **446027**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `962acf883ba72d1b011bae55ba96e2a57e12ad2c`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`51315da4`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/51315da4); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `213249aa6aa84c877f68b3cb37d437c81b44aa3f62882060938090f848c8cc97`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --fast-wide-hidden` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
 
 ### `suturebot-camp-diagnosis-public-fast-frequency-decay-1k`
 
-- State: running, last local counter step 200/1,000. Slurm job **446029**.
+- State: running, last local counter step 400/1,000. Slurm job **446029**.
 - Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `962acf883ba72d1b011bae55ba96e2a57e12ad2c`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`a827821f`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/a827821f); reproduction files are attached to the run.
 - `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `be6c368fdba95400e53d7ee4a0e7ccb3f79069634de5fc19ef4fdd6154da7d29`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --fast-frequency-decay` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
