@@ -1,0 +1,1119 @@
+# Public projection of the resolved H16 config; identifiers are descriptive, not import targets.
+# See README.md for source and checkpoint binding.
+checkpoint:
+  broadcast_via_filesystem: true
+  dcp_async_mode_enabled: true
+  enable_gcs_patch_in_boto3: false
+  hf_export:
+    enabled: false
+    export_every_n: 1
+    hf_repo_id: null
+    upload_to_object_store:
+      bucket: ''
+      credentials: ''
+      enabled: false
+  jit:
+    device: cuda
+    dtype: bfloat16
+    enabled: false
+    input_shape: null
+    strict: true
+  keys_not_to_resume: []
+  keys_to_skip_loading: []
+  load_ema_to_reg: false
+  load_from_object_store:
+    bucket: ''
+    credentials: ''
+    enabled: false
+  load_path: <parent-checkpoint>
+  load_training_state: true
+  only_load_scheduler_state: false
+  save_iter: 100
+  save_to_object_store:
+    bucket: ''
+    credentials: ''
+    enabled: false
+  strict_resume: true
+  type:
+    _target_: dcp.DistributedCheckpointer
+    callbacks: null
+    disable_async: true
+  verbose: true
+  milestone_iters:
+  - 49000
+  - 50000
+  save_final: true
+data_setting:
+  qwen_max_video_token_length: 8192
+dataloader_train:
+  _target_: history_joint_dataloader.HistoryMatchedJointDataLoader
+  audio_sample_rate: 48000
+  dataloaders:
+    action_data:
+      dataloader:
+        _target_: dataloaders.InfiniteDataLoader
+        batch_size: 1
+        dataset:
+          _target_: unified_dataset.wrap_dataset
+          action_channel_masking: true
+          append_duration_fps_timestamps: true
+          append_idle_frames: false
+          append_viewpoint_info: false
+          append_resolution_info: true
+          caption_key: ai_caption
+          cfg_dropout_rate: 0.1
+          format_prompt_as_json: false
+          idle_frames_dropout: 0.05
+          keep_aspect_ratio: true
+          video_augment:
+            enabled: true
+            erasing_prob: 0.0
+            frame_chunk_size: 1
+          video_augment_cuda_families:
+          - cmr_clinical
+          - dvrk_obuda
+          - dvrk_ucsd
+          - dvrk_jhu
+          - dvrk_suturebot_mono
+          - dvrk_stanford
+          - dvrk_rob_surgical
+          - dvrk_ustc
+          - dvrk_hamlyn
+          - dvrk_ucberkeley
+          - turin_mitic
+          - cmr_versius_drybox_peg_transfer
+          - dvrk_star_il
+          - dvrk_tud_grasping_retraction
+          - dvrk_smarts
+          list_of_datasets:
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.CmrClinicalHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: cmr_clinical_all4_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.endoscope
+              letterbox_hw:
+              - 480
+              - 832
+              roots:
+              - cmr_surgical/cholecystectomy
+              - cmr_surgical/hysterectomy
+              - cmr_surgical/inguinal_hernia
+              - cmr_surgical/prostatectomy
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              valid_window_index_path: indices/cmr_valid_windows_c24_stride8_reject_any_v2.npz
+              valid_window_index_sha256: 397076576238f647dbb8cbd0ac046ceedec66d4b9ca91a2021e8a01070f7ac8f
+              clutch_policy: reject_any
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+            name: cmr_clinical
+            ratio: 1.59626
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: dvrk_obuda_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.endoscope.left
+              embodiment_type: dvrk_obuda
+              roots:
+              - obuda/pork_1
+              - obuda/frs_dome_1
+              - obuda/needlethreading_1
+              - obuda/needlethreading_2
+              - obuda/pegtransfer_1
+              - obuda/pegtransfer_2
+              - obuda/rollercoaster_1
+              - obuda/seaspike_1
+              - obuda/seaspike_2
+              - obuda/seaspike_3
+              - obuda/skinphantom_1
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: dvrk_obuda
+            ratio: 0.6949
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: dvrk_ucsd_backward_anchored_worldtrans_rot6d_wxyz_c24_20260910.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.left
+              embodiment_type: dvrk_ucsd
+              roots:
+              - ucsd/surgical_learning_dataset2
+              - ucsd/surgical_learning_dataset
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              pose_source: state
+              quaternion_order: wxyz
+            name: dvrk_ucsd
+            ratio: 0.1892
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: dvrk_jhu_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.endoscope.left
+              embodiment_type: suturebot
+              duplicate_frame_max_fraction: 0.5
+              roots:
+              - jhu/imerse/wound_closure/point_labeled/fausto_0_1_jesse_0_1_2_labeled
+              - jhu/imerse/nephfat/nephfat
+              - jhu/imerse/srt_tissue_lift
+              - jhu/imerse/cao_cautery_combined
+              - jhu/imerse/srth_porcine_chole
+              - jhu/suturebot_canon/suturebot_tissue_2
+              - jhu/suturebot_canon/suturing_jesse
+              - jhu/suturebot_canon/jesse_pickup
+              - jhu/lcsr/arcade/cholecystectomy
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              required_clean_video_roots:
+              - jhu/imerse/wound_closure/point_labeled/fausto_0_1_jesse_0_1_2_labeled
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: dvrk_jhu
+            ratio: 2.5928
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: suturebot_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.endoscope_left
+              embodiment_type: suturebot
+              duplicate_frame_max_fraction: 0.5
+              roots:
+              - jhu/hf_suturebot
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: dvrk_suturebot_mono
+            ratio: 0.28775
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: dvrk_stanford_backward_anchored_worldtrans_rot6d_shardfixed_c24_20260908.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.camera_left
+              embodiment_type: dvrk_stanford
+              roots:
+              - stanford/collaborative_haptics_and_robotics_in_medicine_lab/real_robot_dvrk/peg_transfer
+              - stanford/collaborative_haptics_and_robotics_in_medicine_lab/real_robot_dvrk/needle_transfer
+              - stanford/collaborative_haptics_and_robotics_in_medicine_lab/real_robot_dvrk/tissue_retraction
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: dvrk_stanford
+            ratio: 0.5253
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: dvrk_rob_surgical_backward_anchored_worldtrans_rot6d.json
+              camera_motion_arm: lap
+              camera_motion_threshold: 5.0
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              pose_source: action
+              prompt_source: instruction.text
+              video_key: observation.images.endoscope
+              embodiment_type: rob_surgical
+              roots:
+              - rob_surgical/all_merged_data
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: dvrk_rob_surgical
+            ratio: 0.6031
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: dvrk_ustc_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.endoscope.left
+              embodiment_type: ustc_torin
+              roots:
+              - ustc/needle_pickup
+              - ustc/Needle_handover
+              - ustc/ustc_knot_tying
+              - ustc/grasp_on_liver
+              - ustc/exvivo_liver_sep
+              - ustc/invivo_liver_sep
+              - ustc/tissue_lifting
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: dvrk_ustc
+            ratio: 0.30749
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: dvrk_hamlyn_backward_anchored_worldtrans_rot6d_wxyz_c24_20260910.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.color
+              embodiment_type: hamlyn
+              roots:
+              - hamlyn/knot_tying
+              - hamlyn/needle_grasp_and_handover
+              - hamlyn/peg_transfer
+              - hamlyn/suturing_1
+              - hamlyn/suturing_2
+              - hamlyn/tissue_retraction
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              pose_source: state
+              quaternion_order: wxyz
+            name: dvrk_hamlyn
+            ratio: 0.3272
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: dvrk_ucberkeley_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.left
+              embodiment_type: dvrk_ucberkeley
+              roots:
+              - ucberkeley/debridement_lerobot
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: dvrk_ucberkeley
+            ratio: 0.1333
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: turin_mitic_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              pose_source: action
+              prompt_source: instruction.text
+              video_key: observation.images.endoscope.left
+              embodiment_type: turin_mitic
+              roots:
+              - turin/mitic_lerobot_plastic_tube
+              - turin/mitic_lerobot_ex_vivo
+              - turin/mitic_lerobot_plastic_pad
+              - turin/mitic_lerobot_plastic_pad_3dmed
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: turin_mitic
+            ratio: 0.56609
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.CmrClinicalHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: drybox_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.endoscope
+              letterbox_hw:
+              - 480
+              - 832
+              roots:
+              - cmr_surgical/drybox_peg_transfer
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              valid_window_index_path: indices/cmr_valid_windows_c24_stride8_reject_any_v2.npz
+              valid_window_index_sha256: 397076576238f647dbb8cbd0ac046ceedec66d4b9ca91a2021e8a01070f7ac8f
+              clutch_policy: reject_any
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+            name: cmr_versius_drybox_peg_transfer
+            ratio: 0.00374
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: star_il_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              pose_source: action
+              prompt_source: task
+              video_key: observation.images.endoscope.left
+              embodiment_type: star_il
+              roots:
+              - jhu/star_il_261
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: dvrk_star_il
+            ratio: 0.0704
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: dvrk_tud_grasping_retraction_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.laparoscope_left
+              embodiment_type: tud_tundra
+              roots:
+              - tud/260131_tundra_dataset/grasping_retraction
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: dvrk_tud_grasping_retraction
+            ratio: 0.0287
+            resolution: '256'
+          - _target_: unified_dataset.dataset_entry
+            dataset:
+              _target_: history_dataset.GeneralizedDvrkHistoryDataset
+              action_normalization: quantile
+              normalizer_filename: dvrk_smarts_backward_anchored_worldtrans_rot6d.json
+              chunk_length: 24
+              enable_fast_init: false
+              fps: 10.0
+              joint_mode_weights:
+              - 0.4
+              - 0.2
+              - 0.4
+              - 0.0
+              mode: joint
+              pose_convention: backward_anchored_world_trans
+              prompt_source: task
+              video_key: observation.images.endoscope_left
+              embodiment_type: smarts
+              roots:
+              - jhu/lcsr/smarts/SurgSync-stitch-coldcut/P1
+              - jhu/lcsr/smarts/SurgSync-stitch-coldcut/P2
+              - jhu/lcsr/smarts/SurgSync-stitch-coldcut/P3
+              split: train
+              split_seed: 42
+              split_val_ratio: 0.05
+              viewpoint: ego_view
+              sample_stride: 8
+              video_source: clean
+              exclude_episodes_overlay: cosmos3_h_embodied/data/exclusions/openh_h16_exclusions.json
+              num_history_actions: 16
+              quaternion_order: xyzw
+            name: dvrk_smarts
+            ratio: 0.0619
+            resolution: '256'
+          max_action_dim: 64
+          pad_keys: null
+          resolution: null
+          shard_across_workers: true
+          text_token_key: text_token_ids
+          tokenizer_config:
+            _target_: vlm.create_qwen2_tokenizer_with_download
+            config_variant: gcp
+            pretrained_model_name: Qwen/Qwen3-VL-8B-Instruct
+          video_temporal_downsample: 4
+        in_order: true
+        multiprocessing_context: spawn
+        num_workers: 12
+        prefetch_factor: 16
+        persistent_workers: true
+        pin_memory: true
+        seed: 42
+        use_deterministic_seed: true
+      ratio: 1
+  max_samples_per_batch: null
+  max_sequence_length: 5040
+  patch_spatial: 2
+  seed: 42
+  sound_latent_fps: 0
+  tokenizer_spatial_compression_factor: 16
+  tokenizer_temporal_compression_factor: 4
+  prewarm: false
+dataloader_val: null
+defaults:
+- _self_
+- model: mot_fsdp
+- data_train: null
+- data_val: null
+- optimizer: adamw
+- scheduler: warmup_cosine_lr
+- checkpoint: s3
+- callbacks:
+  - basic
+  - optimization
+  - job_monitor
+  - generation
+- ema: power
+- tokenizer: wan2pt2_tokenizer
+- sound_tokenizer: null
+- cluster: null
+- vlm_config: null
+- ckpt_type: dcp
+- experiment: null
+job:
+  cluster:
+    object_store_bucket_checkpoint: ''
+    object_store_bucket_data: ''
+    object_store_bucket_pretrained: ''
+    object_store_credential_checkpoint: ''
+    object_store_credential_data: ''
+    object_store_credential_pretrained: ''
+    _type: cluster.ClusterConfig
+  group: <experiment-group>
+  name: h16-from-49000
+  project: <experiment-project>
+  wandb_mode: offline
+model:
+  _recursive_: false
+  _target_: omni_mot_model.OmniMoTModel
+  config:
+    action_gen: true
+    activation_checkpointing:
+      mode: full
+      save_ops_regex:
+      - fmha
+      preserve_rng_state: true
+      determinism_check: default
+      _type: activation_checkpointing.ActivationCheckpointingConfig
+    causal_training_strategy: none
+    diffusion_expert_config:
+      base_fps: 24
+      enable_fps_modulation: true
+      load_weights_from_pretrained: false
+      max_vae_latent_side_after_patchify: 52
+      patch_spatial: 2
+      position_embedding_type: unified_3d_mrope
+      rope_h_extrapolation_ratio: 1.0
+      rope_t_extrapolation_ratio: 1.0
+      rope_w_extrapolation_ratio: 1.0
+      timestep_range: 1.0
+      unified_3d_mrope_reset_spatial_ids: true
+      unified_3d_mrope_temporal_modality_margin: 15000
+      _type: model_config.DiffusionExpertConfig
+    ema:
+      enabled: true
+      iteration_shift: 0
+      rate: 0.1
+      _type: ema.EMAConfig
+    fixed_step_sampler_config: null
+    input_caption_key: ai_caption
+    input_image_key: images
+    input_video_key: video
+    joint_attn_implementation: two_way
+    latent_downsample_factor: 16
+    lbl:
+      coeff_gen: null
+      coeff_und: null
+      method: local
+      _type: model_config.LBLConfig
+    log_enc_time_every_n: 100
+    max_action_dim: 64
+    max_num_tokens_after_packing: -1
+    natten_parameter_list: null
+    net: null
+    num_embodiment_domains: 32
+    parallelism:
+      cfg_parallel_shard_degree: 1
+      compile_dynamic: true
+      compiled_region: language
+      context_parallel_shard_degree: 1
+      coordinate_descent_tuning: false
+      data_parallel_shard_degree: 32
+      enable_inference_mode: false
+      max_autotune_pointwise: false
+      precision: bfloat16
+      use_cuda_graphs: false
+      use_torch_compile: true
+      _type: model_config.ParallelismConfig
+    rectified_flow_inference_config:
+      num_train_timesteps: 1000
+      scheduler_type: unipc
+      shift: 1
+      use_dynamic_shifting: false
+      _type: model_config.RectifiedFlowInferenceConfig
+    rectified_flow_training_config:
+      action_loss_weight: 10.0
+      high_sigma_ratio: 0.05
+      high_sigma_timesteps_max: 1000
+      high_sigma_timesteps_min: 995
+      image_loss_scale: null
+      independent_action_schedule: false
+      loss_scale: 10.0
+      normalize_loss_by_active: false
+      shift:
+        '256': 3
+        '480': 5
+        '720': 10
+      shift_action: null
+      sound_loss_scale: null
+      train_time_action_distribution: logitnormal
+      train_time_image_distribution: logitnormal
+      train_time_sound_distribution: logitnormal
+      train_time_video_distribution: waver
+      train_time_weight: uniform
+      use_discrete_rf: false
+      use_dynamic_shift: false
+      use_high_sigma_strategy: false
+      use_high_sigma_strategy_action: false
+      normalize_action_loss_by_active: true
+      _type: model_config.RectifiedFlowTrainingConfig
+    resolution: '256'
+    sound_dim: null
+    sound_gen: false
+    sound_latent_fps: 25
+    sound_tokenizer: null
+    state_ch: 48
+    state_t: 300
+    tokenizer:
+      _target_: wan2pt2_vae_4x16x16.Wan2pt2VAEInterface
+      bucket_name: bucket
+      chunk_duration: 93
+      encode_bucket_multiple: null
+      encode_chunk_frames:
+        '256': 68
+        '480': 24
+        '720': 12
+      encode_exact_durations:
+      - 25
+      keep_decoder_cache: false
+      object_store_credential_path_pretrained: ''
+      spatial_compression_factor: 16
+      temporal_compression_factor: 4
+      temporal_window: null
+      use_streaming_encode: false
+      vae_path: pretrained/tokenizers/video/wan2pt2/Wan2.2_VAE.pth
+    video_temporal_causal: false
+    vision_gen: true
+    vlm_config:
+      model_name: Qwen/Qwen3-VL-8B-Instruct
+      layer_module: Qwen2MoTDecoderLayer
+      qk_norm: false
+      tie_word_embeddings: false
+      use_system_prompt: false
+      model_instance:
+        _target_: unified_mot.Qwen3VLTextForCausalLM
+        config:
+          _target_: vlm.create_vlm_config
+          base_config:
+            _target_: unified_mot.Qwen3VLTextConfig.from_json_file
+            json_file: Qwen3-VL-8B-Instruct.json
+          freeze_und: false
+          layer_module: MoTDecoderLayer
+          qk_norm_for_text: true
+          tie_word_embeddings: true
+      tokenizer:
+        _target_: vlm.create_qwen2_tokenizer_with_download
+        config_variant: gcp
+        pretrained_model_name: Qwen/Qwen3-VL-8B-Instruct
+      pretrained_weights:
+        enabled: false
+        backbone_path: <pretrained-model-store>/Qwen/Qwen3-VL-8B-Instruct
+        credentials_path: ''
+        enable_gcs_patch_in_boto3: true
+        checkpoint_format: null
+        _type: vlm.PretrainedWeightsConfig
+      _type: vlm.VLMConfig
+    _type: model_config.OmniMoTModelConfig
+model_parallel:
+  _cpu_offloading_context: null
+  async_tensor_model_parallel_allreduce: false
+  autocast_dtype: float32
+  barrier_with_L1_time: true
+  batch_p2p_comm: true
+  batch_p2p_sync: true
+  bf16: false
+  context_parallel_size: 1
+  cpu_offloading: false
+  cpu_offloading_activations: false
+  cpu_offloading_double_buffering: false
+  cpu_offloading_num_layers: 0
+  cpu_offloading_weights: false
+  cross_entropy_fusion_impl: native
+  cross_entropy_loss_fusion: false
+  deallocate_pipeline_outputs: false
+  defer_embedding_wgrad_compute: false
+  delay_wgrad_compute: false
+  deterministic_mode: false
+  enable_autocast: false
+  ep_overlap_early_attn_memory_release: false
+  expert_model_parallel_size: 1
+  expert_tensor_parallel_size: 1
+  finalize_model_grads_func: null
+  fp16: false
+  grad_scale_func: null
+  grad_sync_func: null
+  gradient_accumulation_fusion: false
+  hierarchical_context_parallel_sizes: null
+  microbatch_group_size_per_vp_stage: 1
+  moe_extended_tp: false
+  no_sync_func: null
+  num_microbatches_with_partial_activation_checkpoints: null
+  overlap_moe_expert_parallel_comm: false
+  overlap_p2p_comm: false
+  overlap_p2p_comm_warmup_flush: false
+  param_sync_func: null
+  params_dtype: float32
+  perform_initialization: true
+  pipeline_dtype: null
+  pipeline_model_parallel_comm_backend: null
+  pipeline_model_parallel_size: 1
+  sequence_parallel: false
+  tensor_model_parallel_size: 1
+  timers: null
+  tp_comm_atomic_ag: false
+  tp_comm_atomic_rs: false
+  tp_comm_bootstrap_backend: nccl
+  tp_comm_bulk_dgrad: true
+  tp_comm_bulk_wgrad: true
+  tp_comm_overlap: false
+  tp_comm_overlap_ag: true
+  tp_comm_overlap_disable_fc1: false
+  tp_comm_overlap_disable_qkv: false
+  tp_comm_overlap_rs: true
+  tp_comm_overlap_rs_dgrad: false
+  tp_comm_split_ag: true
+  tp_comm_split_rs: true
+  use_cpu_initialization: false
+  use_ring_exchange_p2p: false
+  use_te_rng_tracker: false
+  variable_seq_lengths: false
+  virtual_pipeline_model_parallel_size: null
+  wgrad_deferral_limit: 0
+optimizer:
+  _target_: optimizer.build_optimizer
+  betas:
+  - 0.9
+  - 0.99
+  disable_weight_decay_for_1d_params: false
+  eps: 1.0e-08
+  fused: true
+  keys_to_select:
+  - moe_gen
+  - time_embedder
+  - vae2llm
+  - llm2vae
+  - action2llm
+  - llm2action
+  - action_modality_embed
+  lr: 0.0002
+  lr_multipliers:
+    action2llm: 5.0
+    action_modality_embed: 5.0
+    llm2action: 5.0
+  model: null
+  optimizer_type: FusedAdam
+  weight_decay: 0.05
+scheduler:
+  _target_: optimizer.build_lr_scheduler
+  optimizer: null
+  lr_scheduler_type: LambdaLinear
+  cycle_lengths:
+  - 50000
+  f_max:
+  - 0.4
+  f_min:
+  - 0.05
+  f_start:
+  - 1.0e-06
+  verbosity_interval: 0
+  warm_up_steps:
+  - 100
+trainer:
+  callbacks:
+    step_timing:
+      _target_: step_timing.StepTimingCallback
+      log_freq: 50
+    per_stream_timing:
+      _target_: per_stream_timing.PerStreamTiming
+      log_freq: 100
+    compile_tokenizer:
+      _target_: compile_tokenizer.CompileTokenizer
+      compile_after_iterations: 3
+      enabled: true
+      warmup_resolutions:
+      - '256'
+    dataloader_speed:
+      _target_: dataloading_monitor.DetailedDataLoadingSpeedMonitor
+      action_family_names:
+      - cmr_clinical
+      - dvrk_obuda
+      - dvrk_ucsd
+      - dvrk_jhu
+      - dvrk_suturebot_mono
+      - dvrk_stanford
+      - dvrk_rob_surgical
+      - dvrk_ustc
+      - dvrk_hamlyn
+      - dvrk_ucberkeley
+      - turin_mitic
+      - cmr_versius_drybox_peg_transfer
+      - dvrk_star_il
+      - dvrk_tud_grasping_retraction
+      - dvrk_smarts
+      every_n: 100
+      save_s3: false
+      step_size: 1
+    device_monitor:
+      _target_: device_monitor.DeviceMonitor
+      every_n: 200
+      log_memory_detail: true
+      save_s3: false
+      step_size: 1
+      upload_every_n_mul: 5
+    expert_heatmap:
+      _target_: expert_heatmap.ExpertHeatmap
+      every_n: 1000
+    grad_clip:
+      _target_: grad_clip.GradClip
+      clip_norm: 1.0
+      force_finite: true
+    heart_beat:
+      _target_: heart_beat.HeartBeat
+      every_n: 200
+      save_s3: false
+      step_size: 1
+      update_interval_in_minute: 20
+    iter_speed:
+      _target_: iter_speed.IterSpeed
+      every_n: 1
+      hit_thres: 50
+      save_s3: false
+      save_s3_every_log_n: 500
+    load_pretrained:
+      _target_: load_pretrained.LoadPretrained
+    low_precision:
+      _target_: callback.LowPrecisionCallback
+      config: null
+      trainer: null
+      update_iter: 1
+    manual_gc:
+      _target_: manual_gc.ManualGarbageCollection
+      every_n: 200
+      gc_level: 1
+      warm_up: 5
+    ofu:
+      _target_: ofu.OFUCallback
+      every_n: 50
+      hit_thres: 5
+    param_count:
+      _target_: param_count.ParamCount
+      save_s3: false
+    sequence_packing_padding:
+      _target_: sequence_packing_padding.SequencePackingPadding
+      every_n: 50
+    sigma_loss_analysis:
+      _target_: sigma_loss_analysis.SigmaLossAnalysis
+      every_n: 500
+      every_n_viz: 500
+      save_s3: false
+    skip_nan_step:
+      _target_: skip_nan_step.SkipNaNStep
+      max_consecutive_nan: 100
+    training_stats:
+      _target_: training_stats.TrainingStatsCallback
+      log_freq: 10
+    wandb:
+      _target_: callback.WandBCallback
+      config: null
+      trainer: null
+    wandb_2x:
+      _target_: wandb_log.WandbCallback
+      logging_iter_multipler: 2
+      save_logging_iter_multipler: 1
+      save_s3: false
+    wandb_val:
+      _target_: wandb_log_eval.WandbCallback
+      save_s3: false
+    action_dataloader_state:
+      _target_: dataloader_state.DataLoaderStateCallback
+      distributor_type: action_random
+    termination_signal_checkpoint:
+      _target_: termination_signal_checkpoint.TerminationSignalCheckpoint
+      min_save_fraction: 0.3333333333333333
+    history_exposure:
+      _target_: h16_full_allocation.H16FullAllocationCallback
+      treatment: h16
+      expected_start: 49000
+      expected_adam_step: 49000
+      checkpoint_path: <parent-checkpoint>
+  compile_config:
+    recompile_limit: 100
+    use_duck_shape: false
+  cudnn:
+    benchmark: true
+    deterministic: false
+  ddp:
+    broadcast_buffers: true
+    find_unused_parameters: false
+    static_graph: true
+  distributed_parallelism: fsdp
+  grad_accum_iter: 2
+  grad_scaler_args:
+    enabled: false
+  logging_iter: 10
+  max_iter: 50000
+  max_val_iter: null
+  memory_format: preserve_format
+  profiling:
+    enable_memory_snapshot: false
+    enable_nsys: false
+    enable_profiling: false
+    profile_freq: 1
+    profile_memory: false
+    profile_warmup: 3
+    record_shape: false
+    save_s3: false
+    target_ranks:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    with_modules: true
+    with_stack: true
+  run_validation: false
+  run_validation_on_start: false
+  save_zero_checkpoint: false
+  seed: 0
+  straggler_detection:
+    analyze_backward: true
+    analyze_dataloading: true
+    analyze_forward: true
+    analyze_optimizer: true
+    enabled: false
+    max_diff: 2.0
+    profile_freq: 1
+    raise_error: true
+    report_freq: 100
+    save_s3: false
+  timeout_period: 999999999
+  type: trainer.ImaginaireTrainer
+  validation_iter: 100
+upload_reproducible_setup: false
+_type: config.Config

@@ -1,0 +1,45 @@
+start	record_time	job	signature	start_iteration	end_iteration	durable_end	source_pin	source_binding
+1	20260903_192304	5972250	A	0	?	?	d3183b2db52a	launch audit
+2	20260904_070104	?	B	?	?	?	?	unresolved
+3	20260904_110217	?	B	?	?	?	?	unresolved
+4	20260904_150208	?	B	?	?	?	?	unresolved
+5	20260905_010352	?	B	?	?	?	?	unresolved
+6	20260905_050517	?	B	?	?	?	?	unresolved
+7	20260905_090622	?	B	?	?	?	?	unresolved
+8	20260905_130513	?	C	?	?	?	?	unresolved
+9	20260905_170402	?	D	?	?	?	?	unresolved
+10	20260905_173752	?	C	?	?	?	?	unresolved
+11	20260905_195622	5982753	C	2200	2633	2633	aeb0f03e8a65	job handoff
+12	20260905_235717	5983471	C	2633	3062	3062	aeb0f03e8a65	job handoff
+13	20260906_035623	5983960	C	3062	3496	3496	aeb0f03e8a65	job handoff
+14	20260906_075503	5984854	C	3496	3669	3669	aeb0f03e8a65	job handoff
+15	20260906_093905	5985107	E	3669	3826	3800	aeb0f03e8a65	job handoff
+15a	—	5985162	—	?	—	—	aeb0f03e8a65	retry; not independently pinned
+16	20260906_101714	5985164	E	3800	5450	5450	aeb0f03e8a65	job handoff
+17	20260906_141737	5985472	E	5450	?	?	aeb0f03e8a65	chain base; chronology only
+18	20260906_181807	5986150	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+19	20260906_221845	5986709	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+20	20260907_021842	5987607	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+21	20260907_061748	5988542	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+22	20260907_101655	5989174	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+23	20260907_141554	5989818	E	?	15950	15950	aeb0f03e8a65	chain base; chronology only
+24	20260909_072701	5999837	E	15950	16756	16756	aeb0f03e8a65	job handoff
+25	20260909_092653	6000947	E	16756	18283	18283	aeb0f03e8a65	job handoff
+26	20260909_134351	6002009	E	18283	?	?	aeb0f03e8a65	job handoff
+27	20260909_154528	6002858	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+28	20260909_194500	6004626	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+29	20260909_234845	6006007	E	22394	?	?	aeb0f03e8a65	chain base; chronology only
+30	20260910_034903	6006592	E	24043	?	?	aeb0f03e8a65	chain base; chronology only
+31	20260910_080218	6008131	E	25737	?	?	aeb0f03e8a65	chain base; chronology only
+32	20260910_120759	6009187	E	27340	?	?	aeb0f03e8a65	chain base; chronology only
+33	20260910_160921	6010194	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+34	20260910_215716	6011343	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+35	20260911_015649	6012310	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+36	20260911_055557	6013601	E	33955	?	?	aeb0f03e8a65	chain base; chronology only
+37	20260911_125124	6015086	E	35656	37270	37270	aeb0f03e8a65	chain base; chronology only
+38	20260911_184412	6016848	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+39	20260911_224330	6018055	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+40	20260912_024339	6018833	E	40600	?	?	aeb0f03e8a65	chain base; chronology only
+41	20260912_064313	6019512	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+42	20260912_104155	6020236	E	?	?	?	aeb0f03e8a65	chain base; chronology only
+43	20260912_144110	6020929	E	45600	46937	46937	aeb0f03e8a65	job handoff
