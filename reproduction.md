@@ -47,3 +47,16 @@ These are controlled pretraining diagnostics, not policy runs or candidates for 
 - Launch: `sbatch <project-root>/<verified-launch-script>`, executed SHA-256 `6a7786547d9a179c75707be7ab5e3b800c3a5b26f7dd11bd4cb43d9e615572f9`. Underlying training command: `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --internal-action-scaling` with the online logger. Data, model seed, start, panel and probe cadence as above.
 
 <!-- end of pinpoint diagnostics -->
+
+<!-- diagnosis owner records -->
+
+## Differential diagnosis — reference and noise protocol (slide 39, originally 27)
+
+Same seven registered roots, split manifest `e702f9c54d8a95d69d942459f19445936b401f9b1ab65f6e523daea9850569de`, and frozen 200-episode pose fit as job 443703 above. Each starts fresh; no policy checkpoint, sampler or guidance. No episode tracks. Frozen CPU evaluation at completed multiples of 1,000 over the same 114 validation episodes and 13,524 real states. Source-free results packet: `camp-diagnosis/run-evidence.md` and matched measurements (owner-local; no Drive delivery by this owner). Read the observer, scorer, adapter and split hashes from the run config.
+
+### `suturebot-camp-diagnosis-reference-20k`
+
+- State: running, last local counter step 0 / 20,000, Slurm job **445774**.
+- Not reproducible from public git by request: in-place commit `8347c01eb179d86a12f312dc522ace41bacf6c10`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`; uncommitted private instrumentation, no source diff distributed. Public reader `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`. Ledger branch `ohalimi/suturebot-camp-diagnosis`.
+- W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`53ab9aa0`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/53ab9aa0).
+- Launch: `sbatch <project-root>/<verified-diagnostic-script>`, executed script SHA-256 `d3c25e78fd68be211439a16a2e54e73bead8f04ba149db4faef63b2eac800803`. In-place registered adapter `train --seed 0 --steps 20000 --device cuda`. Data and protocol as above.
