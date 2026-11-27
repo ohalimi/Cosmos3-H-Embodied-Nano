@@ -2,7 +2,7 @@
 
 ## nano-h16-suturebot
 
-**Running at step 20,740 of 50,000** (Forge, 26 Nov 2026 17:44 PT); the latest complete save at this check was 20,700. The evaluation inputs at steps 0 (Cosmos3-Nano), 100, 1,000, 5,000 and 10,000 are present. Steps 25,000 and 50,000 have not been saved. Slides 7 and 18 have no held-out scores from this run yet: a training validation loss is not a rollout score.
+**Running at step 20,940 of 50,000** (Forge, 26 Nov 2026 17:52 PT); the latest verified complete save was 20,900. The evaluation inputs at steps 0 (Cosmos3-Nano), 100, 1,000, 5,000 and 10,000 are present. Steps 25,000 and 50,000 have not been saved. Slides 7 and 18 have no held-out scores from this run yet: a training validation loss is not a rollout score.
 
 | Job | Starting state | Outcome |
 | --- | --- | --- |
@@ -49,4 +49,32 @@ bash tools/train_with_prune.sh --checkpoint-dir "$JOB/checkpoints" --keep-last 2
   trainer.callbacks.every_n_sample_ema.do_x0_prediction=false
 ```
 
-For the clean launch there was no latest checkpoint. On resume the run's own latest pointer took precedence over the Nano initialization. Saves are every 100 steps. The best validation checkpoint observed so far (step 3,200) was pruned before it was requested. Steps 25,000 and 50,000 are retention milestones. Step 46,937 is not a scheduled save; a neighboring step is not equivalent. No separate evaluation is recorded here.
+For the clean launch there was no latest checkpoint. On resume the run's own latest pointer took precedence over the Nano initialization. Saves are every 100 steps. The best validation checkpoint observed so far (step 3,200) was pruned before it was requested. Steps 25,000 and 50,000 are retention milestones. Step 46,937 is not a scheduled save; a neighboring step is not equivalent. See the separate evaluation runs below.
+
+## Slide 18 evaluation protocol
+
+All entries below use branch `ohalimi/nano-h16-suturebot`, evaluator commit `ee497ad8464162157ddc1aacb0ac9595a8493e78`, and the framework commit and frozen split in the training entry above. The 84 eligible episodes are not 84 sampled clips: the joint evaluation scores 32 physical windows (28 mono, 4 wound closure), each in forward dynamics, inverse dynamics and WAM. `make_panel` selects evenly spaced sorted validation episode IDs per root, at source frame 48. The first three selected per root also get three consecutive rollout chunks. Panel SHA-256: `1c502b6bb020fbe5028f19608b1f120c6349493cf0e7b16fbea01c130dadc30e`. A substituted window is an error. No panel, model weights, or per-sample files are stored in this repository.
+
+One node per checkpoint, one GPU per seed, seeds **20260908, 20260909, 20260910**, 35 denoising steps and guidance 6.0. Report WAM policy MSE, FD PSNR, ID MSE (joint summarizer, All), and rollout PSNR (quantitative rollout summary, All). Report all three seed values, their mean and max minus min. The step-0 baseline uses regular Nano weights; later saves use their own EMA. Source launcher SHA-256 `5b1eeee38471e7c0845659a5896ba6dc8941c76f1ed7ba57c4a82665b4fd5792`; executed launcher `f7cf122dc06c9c2777be0c3c374769b4b35456992718eab9316c28ed420ac760` (site interpreter only). Each Forge eval record has its plan and receives its summary when complete. The command for each seed is:
+
+```sh
+python -m tools.benchmark.heldout_panel --checkpoint "$MODEL_DIR" \
+  --manifest "$FROZEN_MANIFEST" --manifest-sha256 c06581a2348a981eb0100960daedb0fd684cef8539e9dc1a75961a761a6133f4 \
+  --seed "$SEED" --weights "$WEIGHTS" --output "$SEED_OUTPUT"
+```
+
+## nano-h16-suturebot-eval-s0
+
+Slide 18, checkpoint **0** (`Cosmos3-Nano/model`, regular); model metadata SHA-256 `21dea15c9aac109bbd0c0b6efa55df101fb21b33f1264a0b284b7ea4c84481ae`. Job **446447**, [Forge eval 37589c88](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/37589c88), running as of 2026-11-26 17:52 PT; scores pending. Same code, launcher, panel and three-seed command as above.
+
+## nano-h16-suturebot-eval-s100
+
+Slide 18, checkpoint **100** (`iter_000000100/model`, ema); model metadata SHA-256 `73c7a75272d6a1717fb2b576e63e34c57f6efcf1a4424ea17775e3e94f161928`. Job **446449**, [Forge eval bf5edf36](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/bf5edf36), running as of 2026-11-26 17:52 PT; scores pending. Same code, launcher, panel and three-seed command as above.
+
+## nano-h16-suturebot-eval-s1000
+
+Slide 18, checkpoint **1,000** (`iter_000001000/model`, ema); model metadata SHA-256 `d5058119de32ea6e5cd5a24ea216356da071abf3d0b30bbb52ab8446cf925996`. Job **446451**, [Forge eval 384348b5](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/384348b5), running as of 2026-11-26 17:52 PT; scores pending. Same code, launcher, panel and three-seed command as above.
+
+## nano-h16-suturebot-eval-s5000
+
+Slide 18, checkpoint **5,000** (`iter_000005000/model`, ema); model metadata SHA-256 `91a5cfe95b1689f9745259786fb53c997da993ffbb8fe42fe525600c31573adb`. Job **446453**, [Forge eval 8cebe80a](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/8cebe80a), running as of 2026-11-26 17:52 PT; scores pending. Same code, launcher, panel and three-seed command as above.
