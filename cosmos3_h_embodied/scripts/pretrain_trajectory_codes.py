@@ -79,6 +79,11 @@ def validation(model, obs, pool, rng, device):
         return model.losses(h, code, commit, pos, anchors, lengths)['reconstruction'].item()
 
 
+def make_optimizer(model, factor):
+    lr = 1e-3 if factor == 'fast-learning-rate' else 1e-4
+    return torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
+
+
 def pretrain(config, out, device, log=None, factor=None):
     if factor is not None and factor not in FACTORS:
         raise ValueError('unknown diagnostic factor')
@@ -106,7 +111,7 @@ def pretrain(config, out, device, log=None, factor=None):
     torch.manual_seed(0)
     rng = random.Random(0)
     model = construct(window, device, camera)
-    opt = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
+    opt = make_optimizer(model, factor)
     first, best = 1, float('inf')
     import torch.distributed.checkpoint as dcp
     checkpoints = out / 'checkpoints'
