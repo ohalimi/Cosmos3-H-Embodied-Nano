@@ -56,28 +56,42 @@ Same seven registered roots, split manifest `e702f9c54d8a95d69d942459f19445936b4
 
 ### `suturebot-camp-diagnosis-reference-20k`
 
-- State: running, last local counter step 4,000 / 20,000, Slurm job **445774**.
+- State: completed, last local counter step 20,000 / 20,000, Slurm job **445774**.
 - Not reproducible from public git by request: in-place commit `8347c01eb179d86a12f312dc522ace41bacf6c10`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`; uncommitted private instrumentation, no source diff distributed. Public reader `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`. Ledger branch `ohalimi/suturebot-camp-diagnosis`.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`53ab9aa0`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/53ab9aa0).
 - Launch: `sbatch <project-root>/<verified-diagnostic-script>`, executed script SHA-256 `d3c25e78fd68be211439a16a2e54e73bead8f04ba149db4faef63b2eac800803`. In-place registered adapter `train --seed 0 --steps 20000 --device cuda`. Data and protocol as above.
 
 ### `suturebot-camp-diagnosis-noise-s1-1k`
 
-- State: running, last local counter step 0 / 1,000, Slurm job **445788**.
+- State: completed, last local counter step 1,000 / 1,000, Slurm job **445788**.
 - Not reproducible from public git by request: in-place commit `8347c01eb179d86a12f312dc522ace41bacf6c10`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`; uncommitted private instrumentation, no source diff distributed. Public reader `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`. Ledger branch `ohalimi/suturebot-camp-diagnosis`.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`a41486f9`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/a41486f9).
 - Launch: `sbatch <project-root>/<verified-diagnostic-script>`, executed script SHA-256 `d7fdc6c22e3da363654bfc974d47157b55253166367d15ab14c6c8c42ecf6c32`. In-place registered adapter `train --seed 1 --steps 1000 --device cuda`. Data and protocol as above.
 
 ### `suturebot-camp-diagnosis-noise-s2-1k`
 
-- State: running, last local counter step 0 / 1,000, Slurm job **445790**.
+- State: completed, last local counter step 1,000 / 1,000, Slurm job **445790**.
 - Not reproducible from public git by request: in-place commit `8347c01eb179d86a12f312dc522ace41bacf6c10`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`; uncommitted private instrumentation, no source diff distributed. Public reader `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`. Ledger branch `ohalimi/suturebot-camp-diagnosis`.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`71242437`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/71242437).
 - Launch: `sbatch <project-root>/<verified-diagnostic-script>`, executed script SHA-256 `3473f3e8ffa4925047c630191bf1bd18c36ecd43077e89299b66a6e79b0d2b05`. In-place registered adapter `train --seed 2 --steps 1000 --device cuda`. Data and protocol as above.
 
 ### `suturebot-camp-diagnosis-noise-s3-1k`
 
-- State: running, last local counter step 0 / 1,000, Slurm job **445792**.
+- State: completed, last local counter step 1,000 / 1,000, Slurm job **445792**.
 - Not reproducible from public git by request: in-place commit `8347c01eb179d86a12f312dc522ace41bacf6c10`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`; uncommitted private instrumentation, no source diff distributed. Public reader `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`. Ledger branch `ohalimi/suturebot-camp-diagnosis`.
 - W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`a48c3515`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/a48c3515).
 - Launch: `sbatch <project-root>/<verified-diagnostic-script>`, executed script SHA-256 `50f7b2b5e47659fbd962812375aaab067b1201e4db877d6ee67dfd49f42a3d1a`. In-place registered adapter `train --seed 3 --steps 1000 --device cuda`. Data and protocol as above.
+
+### `suturebot-camp-diagnosis-reference-public-lr-1k`
+
+- State: completed, last local counter step 1,000 / 1,000, Slurm job **445808**.
+- Not reproducible from public git by request: in-place commit `8347c01eb179d86a12f312dc522ace41bacf6c10`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`; uncommitted private instrumentation, no source diff distributed. Public reader `5ef4a62e37a2b2b84f59e30b0880a3a4b73cd5e6`. Ledger branch `ohalimi/suturebot-camp-diagnosis`.
+- W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`49362249`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/49362249).
+- Launch: `sbatch <project-root>/<verified-diagnostic-script>`, executed script SHA-256 `d7fddd67b2281fe5775567820aa7b5dabd1b21f88b78311339f4e3063866113c`. In-place registered adapter `train --seed 0 --steps 1000 --device cuda --lr 0.0001`. Data and protocol as above.
+
+### `suturebot-camp-diagnosis-public-fast-lr-1k`
+
+- State: running, last local counter step 1/1,000. Slurm job **445815**.
+- Clean public branch `ohalimi/suturebot-camp-diagnosis`, training commit `703f0d922e1f7801369c42be916c683cc97a37a9`, framework `7cfaf7854b2114eda5deb36250a7e8f00c64d69e`. No dirty diff.
+- W&B: holoscan-advanced-workflow-team / cosmos3_suturebot_memory / [`7e2526e3`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/7e2526e3); reproduction files are attached to the run.
+- `sbatch <project-root>/<verified-diagnostic-script>`, SHA-256 `a9917072e6b2cb5d39b40ae171a8c64aa3359ffc90aa5254b34a757fc38ea0e3`. Public `python -m cosmos3_h_embodied.scripts.pretrain_trajectory_codes pretrain --control-config <control.yaml> --out <run-dir> --device cuda --fast-learning-rate` with online logger. Seed 0; fresh model; same roots, split, panel and evaluation as above.
