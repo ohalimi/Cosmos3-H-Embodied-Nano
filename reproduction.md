@@ -2,7 +2,7 @@
 
 ## nano-h16-suturebot
 
-**Running at step 20,940 of 50,000** (Forge, 26 Nov 2026 17:52 PT); the latest verified complete save was 20,900. The evaluation inputs at steps 0 (Cosmos3-Nano), 100, 1,000, 5,000 and 10,000 are present. Steps 25,000 and 50,000 have not been saved. Slides 7 and 18 have no held-out scores from this run yet: a training validation loss is not a rollout score.
+**Running at step 20,940 of 50,000** (Forge, 26 Nov 2026 17:52 PT); the latest verified complete save was 20,900. The evaluation inputs at steps 0 (Cosmos3-Nano), 100, 1,000, 5,000 and 10,000 are present. Steps 25,000 and 50,000 have not been saved. See the separate held-out evaluation records below; training validation loss is not a rollout score.
 
 | Job | Starting state | Outcome |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ python -m tools.benchmark.heldout_panel --checkpoint "$MODEL_DIR" \
 
 ## nano-h16-suturebot-eval-s0
 
-Slide 18, checkpoint **0** (`Cosmos3-Nano/model`, regular); model metadata SHA-256 `21dea15c9aac109bbd0c0b6efa55df101fb21b33f1264a0b284b7ea4c84481ae`. Job **446447**, [Forge eval 37589c88](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/37589c88), running as of 2026-11-26 17:52 PT; scores pending. Same code, launcher, panel and three-seed command as above.
+Slide 18, checkpoint **0** (`Cosmos3-Nano/model`, regular); model metadata SHA-256 `21dea15c9aac109bbd0c0b6efa55df101fb21b33f1264a0b284b7ea4c84481ae`. Job **446447**, [Forge eval 37589c88](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/37589c88), finished; verified against the online plan and summary files. Same code, launcher, panel and three-seed command as above.
 
 ## nano-h16-suturebot-eval-s100
 
@@ -78,3 +78,7 @@ Slide 18, checkpoint **1,000** (`iter_000001000/model`, ema); model metadata SHA
 ## nano-h16-suturebot-eval-s5000
 
 Slide 18, checkpoint **5,000** (`iter_000005000/model`, ema); model metadata SHA-256 `91a5cfe95b1689f9745259786fb53c997da993ffbb8fe42fe525600c31573adb`. Job **446453**, [Forge eval 8cebe80a](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/8cebe80a), running as of 2026-11-26 17:52 PT; scores pending. Same code, launcher, panel and three-seed command as above.
+
+## nano-h16-suturebot-eval-s10000
+
+Slide 18, checkpoint **10,000** (`iter_000010000/model`, ema); model metadata SHA-256 `473b619bcd14d97bf79b530d1c0d985acb5dea3afc5326aa5573b65465c1ccfc`. Job **446666**, [Forge eval 747fd3d0](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/747fd3d0), running as of 2026-11-26 18:09 PT; scores pending. Same code, launcher, panel and three-seed command as above.
