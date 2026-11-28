@@ -209,12 +209,16 @@ def trace(mode, device="cpu", dtype=torch.float32, multi=True):
                         and row["cell"]["branch"] == "positive"
                     )
                     matrix = row["full_map"]
+                    # The published map stays on the host; the scored tensors stay on device.
+                    assert matrix.device.type == "cpu" and matrix.dtype == torch.float16
+                    assert v.is_cuda and pred.device == v.device
                     assert matrix.shape == (lens[0], lens[0])
                     assert matrix[: texts[0], texts[0] :].count_nonzero() == 0
                     # Named head from its stored fp16 probabilities reproduces actual kernel output.
-                    mix = matrix[texts[0] :].float() @ v[0, : lens[0], 0].float()
+                    values = v[0, : lens[0], 0].detach().cpu().float()
+                    mix = matrix[texts[0] :].float() @ values
                     torch.testing.assert_close(
-                        mix, pred[: lens[0] - texts[0], :64].float(), atol=0.01, rtol=0
+                        mix, pred[: lens[0] - texts[0], :64].detach().cpu().float(), atol=0.01, rtol=0
                     )
             loss = pred.float().square().mean()
             loss.backward()
