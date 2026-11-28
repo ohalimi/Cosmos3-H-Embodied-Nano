@@ -1,8 +1,8 @@
 # Reproduction
 
-## `release-all-modes` — running (released step 50,000; job 459308)
+## `release-all-modes` — failed before scoring (released step 50,000; job 459308)
 
-One job evaluates the released H16 regular network at step 50,000 for the “Release / our eval” column (slides 44–45; earlier slides 10 and 28). No rebuild or plus-families checkpoint is scored. Measurements: pending.
+Job `459308` was the single submission for the “Release / our eval” column (slides 44–45; earlier slides 10 and 28). It passed the input gate and started four workers, but all four stopped on the first family (`cmr_clinical`) while the loader wrote its Arrow cache to node-local temporary storage: `OSError: [Errno 28] No space left on device`. Slurm recorded `FAILED`, exit `1:0`, after 10 min 21 s. **No clip scores or aggregate metrics were produced for any repeat.** No rebuild or plus-families checkpoint was scored.
 
 | Record | Value |
 |---|---|
