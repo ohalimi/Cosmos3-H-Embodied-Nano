@@ -1,6 +1,8 @@
 # Reproduction
 
-## `release-all-modes` — failed before scoring (released step 50,000; job 459308)
+## `release-all-modes` — retry not submitted (released step 50,000; first attempt 459308 failed)
+
+The retry will use a fresh attempt directory. Its four workers will share one job-owned `HF_DATASETS_CACHE` on the project output volume, separate from the read-only release inputs and tokenizer snapshots. This changes runtime storage, not the clips, checkpoint, seeds or scoring command. Do not reuse the failed attempt’s outputs. The retry launcher (SHA-256 `751c56bd45a2718866fbafe9789aa65457c350697ef7f3b967de0eb52dde648d`) requires at least 1 TiB and 100,000 free inodes on that volume before submission and at job start. The planned site command is `sbatch <output-cache-launcher>` after `bash <output-cache-launcher> --preflight` passes. The evaluator command below is unchanged.
 
 Job `459308` was the single submission for the “Release / our eval” column (slides 44–45; earlier slides 10 and 28). It passed the input gate and started four workers, but all four stopped on the first family (`cmr_clinical`) while the loader wrote its Arrow cache to node-local temporary storage: `OSError: [Errno 28] No space left on device`. Slurm recorded `FAILED`, exit `1:0`, after 10 min 21 s. **No clip scores or aggregate metrics were produced for any repeat.** No rebuild or plus-families checkpoint was scored.
 
