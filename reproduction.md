@@ -9,7 +9,7 @@ One job evaluates the released H16 regular network at step 50,000 for the “Rel
 | Branch / clean evaluation commit | `ohalimi/release-all-modes` / `48fd710163aca224e5f1a65e55132a16b8460c48` |
 | Framework commit | `7cfaf7854b2114eda5deb36250a7e8f00c64d69e` |
 | Start checkpoint | Released native `iter_000050000/model`, regular `net.*` (not EMA). Native regular tensors match the published BF16 network. |
-| Launcher | One node, four single-GPU workers. Updated launcher digest to be recorded before submission. |
+| Planned launcher SHA-256 | `7340c3aeddaf4c56d2b51b300f2947c0d5959b34e0dc1ee8a49d4e653eb8a258` (one node, four single-GPU workers). Re-pin if the model-input owner publishes a new tokenizer path. |
 | Jobs / W&B | No job or retry; `holoscan-advanced-workflow-team/cosmos3_suturebot_memory`, no run ID or URL yet. |
 | Classification / signals | **Provisional, kosher light** until all inputs are stamped. Internal signals deferred: no proven native-kernel hooks, 0 bytes planned. |
 
@@ -31,6 +31,8 @@ Set `OPENH_DATA_ROOT` to the release team's processed copies, laid out at the pu
 | `turin_mitic` | `turin/` | `mitic_lerobot_plastic_tube`, `mitic_lerobot_ex_vivo`, `mitic_lerobot_plastic_pad`, `mitic_lerobot_plastic_pad_3dmed` |
 
 **Gate:** require the complete public layout and the nonempty CMR valid-window index. Run `data_gate.py roots <launcher>`, then `data_gate.py check --scope released-recipe --light <kosher-light-release.tsv> <resolved-inputs>`. Expand the 41 public roots from the pinned family config; also check the native model, the CMR index file, and the evaluation normalizers and exclusions against their release evidence. The offline evaluator also opens the Wan VAE and Qwen tokenizer: check the actual snapshot paths against owner-supplied source evidence. A pass on the release table alone does not clear inputs it does not list. Require all checks to pass immediately before the single submission and again at job start. No downloading, preparing data, or substituting weights.
+
+The README evaluator opens the normalizers and relative-path exclusion list shipped with the public package. Gate those actual files using their upstream Git blobs at `14d1626700b5`; do not substitute the training overlay, whose absolute paths would not select the same exclusions here. For the 41 public evaluation roots the two overlays select the same 301 excluded root/episode pairs. The numeric statistics loaded by the evaluator match the release sidecars.
 
 **Split:** shipped `val` (seed 42, fraction 0.05), exclusions and CMR windows unchanged. Realized clip-manifest hash: pending. One panel of 64 evenly spread clips per family × 10 families = 640. Each clip has 25 frames and 24 predicted action rows.
 
