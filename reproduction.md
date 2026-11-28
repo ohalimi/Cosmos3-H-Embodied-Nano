@@ -1,6 +1,6 @@
 # Reproduction
 
-## `release-all-modes` — not submitted
+## `release-all-modes` — running (released step 50,000; job 459308)
 
 One job evaluates the released H16 regular network at step 50,000 for the “Release / our eval” column (slides 44–45; earlier slides 10 and 28). No rebuild or plus-families checkpoint is scored. Measurements: pending.
 
@@ -10,7 +10,7 @@ One job evaluates the released H16 regular network at step 50,000 for the “Rel
 | Framework commit | `7cfaf7854b2114eda5deb36250a7e8f00c64d69e` |
 | Start checkpoint | Released native `iter_000050000/model`, regular `net.*` (not EMA). Native regular tensors match the published BF16 network. |
 | Launcher SHA-256 | `e44198fcf1ca2def05a83bd315f42c1ef745cbaa7311a3e78e88ed9622e8472f` (one node, four single-GPU workers). Reads the published offline Qwen `0c351dd01ed8` and Wan `921dbaf3f167` snapshots from the release layout. |
-| Jobs / W&B | No job or retry; `holoscan-advanced-workflow-team/cosmos3_suturebot_memory`, no run ID or URL yet. |
+| Jobs / W&B | Slurm `459308`, first attempt. Forge `holoscan-advanced-workflow-team/cosmos3_suturebot_memory`, run [`stocjz6a`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/stocjz6a). |
 | Classification / signals | **Provisional, kosher light** until all inputs are stamped. Internal signals deferred: no proven native-kernel hooks, 0 bytes planned. |
 
 ### Inputs and submission gate
