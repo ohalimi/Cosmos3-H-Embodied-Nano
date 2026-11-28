@@ -1,10 +1,10 @@
 # Reproduction
 
-## `release-all-modes` — retry not submitted (released step 50,000; first attempt 459308 failed)
+## `release-all-modes` — running (released step 50,000; retry job 459480)
 
-The retry will use a fresh attempt directory. Its four workers will share one job-owned `HF_DATASETS_CACHE` on the project output volume, separate from the read-only release inputs and tokenizer snapshots. This changes runtime storage, not the clips, checkpoint, seeds or scoring command. Do not reuse the failed attempt’s outputs. The retry launcher (SHA-256 `751c56bd45a2718866fbafe9789aa65457c350697ef7f3b967de0eb52dde648d`) requires at least 1 TiB and 100,000 free inodes on that volume before submission and at job start. The planned site command is `sbatch <output-cache-launcher>` after `bash <output-cache-launcher> --preflight` passes. The evaluator command below is unchanged.
+Job `459480` started at 19:24 PT on 27 Nov 2026. One submission covers all three README repeats. Its four workers share one `HF_DATASETS_CACHE` at `<attempt-output>/runtime/datasets`, outside all release inputs and tokenizer snapshots. Attempt 1’s outputs were not reused. Only the runtime storage changed; clips, checkpoint, seeds and scoring command are unchanged. The retry launcher (SHA-256 `751c56bd45a2718866fbafe9789aa65457c350697ef7f3b967de0eb52dde648d`) requires at least 1 TiB and 100,000 free inodes before submission and at job start. `bash <output-cache-launcher> --preflight` passed on all 67 inputs (54 release-side, 11 packaged, two tokenizer snapshots); `sbatch <output-cache-launcher>` submitted the retry. **No measured scores at submission.**
 
-Job `459308` was the single submission for the “Release / our eval” column (slides 44–45; earlier slides 10 and 28). It passed the input gate and started four workers, but all four stopped on the first family (`cmr_clinical`) while the loader wrote its Arrow cache to node-local temporary storage: `OSError: [Errno 28] No space left on device`. Slurm recorded `FAILED`, exit `1:0`, after 10 min 21 s. **No clip scores or aggregate metrics were produced for any repeat.** No rebuild or plus-families checkpoint was scored.
+Job `459308` was the first submission for the “Release / our eval” column (slides 44–45; earlier slides 10 and 28). It passed the input gate and started four workers, but all four stopped on the first family (`cmr_clinical`) while the loader wrote its Arrow cache to node-local temporary storage: `OSError: [Errno 28] No space left on device`. Slurm recorded `FAILED`, exit `1:0`, after 10 min 21 s. **No clip scores or aggregate metrics were produced for any repeat.** No rebuild or plus-families checkpoint was scored.
 
 | Record | Value |
 |---|---|
@@ -12,7 +12,7 @@ Job `459308` was the single submission for the “Release / our eval” column (
 | Framework commit | `7cfaf7854b2114eda5deb36250a7e8f00c64d69e` |
 | Start checkpoint | Released native `iter_000050000/model`, regular `net.*` (not EMA). Native regular tensors match the published BF16 network. |
 | Launcher SHA-256 | `e44198fcf1ca2def05a83bd315f42c1ef745cbaa7311a3e78e88ed9622e8472f` (one node, four single-GPU workers). Reads the published offline Qwen `0c351dd01ed8` and Wan `921dbaf3f167` snapshots from the release layout. |
-| Jobs / W&B | Slurm `459308`, first attempt. Forge `holoscan-advanced-workflow-team/cosmos3_suturebot_memory`, run [`stocjz6a`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/stocjz6a). |
+| Jobs / W&B | Forge `holoscan-advanced-workflow-team/cosmos3_suturebot_memory`: Slurm `459308`, failed, run [`stocjz6a`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/stocjz6a); Slurm `459480`, running, run [`omx7bgeq`](https://app.forge.coreweave.com/holoscan-advanced-workflow-team/cosmos3_suturebot_memory/runs/omx7bgeq). |
 | Classification / signals | **Provisional, kosher light** until all inputs are stamped. Internal signals deferred: no proven native-kernel hooks, 0 bytes planned. |
 
 ### Inputs and submission gate
