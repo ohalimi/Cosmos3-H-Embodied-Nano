@@ -2,17 +2,16 @@
 
 ## `release-all-modes` — not submitted
 
-This single evaluation of the **released H16 checkpoint at step 50,000** serves slide 10 (“Step 50,000: the release's public eval is the target”) and the “Release, our eval” column of slide 28. It is a plan, not a measured result. It does not evaluate a rebuild, a plus-families checkpoint, or step 46,937.
+One job evaluates the released H16 regular network at step 50,000 for the “Release / our eval” column (slides 44–45; earlier slides 10 and 28). No rebuild or plus-families checkpoint is scored. Measurements: pending.
 
 | Record | Value |
 |---|---|
-| Evaluation branch / pinned code | `ohalimi/release-all-modes` / `48fd710163aca224e5f1a65e55132a16b8460c48` (clean detached checkout required) |
-| Framework | `cosmos-framework`, `7cfaf7854b2114eda5deb36250a7e8f00c64d69e` at preflight; record the actual revision at launch |
-| Start checkpoint | Released `Cosmos3-H-Embodied-Nano/h16_50000_dcp/model` (DCP) |
-| Planned launcher SHA-256 | `e26d3088fde3699f63827fbf23483de551b6b8735492c685649d5a055aac86ae` (team-processed inputs; stamp and publication preflight; three joint seeds plus a fourth policy rollout) |
-| Job IDs, including retries | None; not submitted |
-| W&B | Configured entity/project: `holoscan-advanced-workflow-team/cosmos3_suturebot_memory`; no run ID or run URL |
-| Runtime diff | None; the pinned evaluation checkout passed the clean-tree check |
+| Branch / clean evaluation commit | `ohalimi/release-all-modes` / `48fd710163aca224e5f1a65e55132a16b8460c48` |
+| Framework commit | `7cfaf7854b2114eda5deb36250a7e8f00c64d69e` |
+| Start checkpoint | Released native `iter_000050000/model`, regular `net.*` (not EMA). Native regular tensors match the published BF16 network. |
+| Launcher | One node, four single-GPU workers. Updated launcher digest to be recorded before submission. |
+| Jobs / W&B | No job or retry; `holoscan-advanced-workflow-team/cosmos3_suturebot_memory`, no run ID or URL yet. |
+| Classification / signals | **Provisional, kosher light** until all inputs are stamped. Internal signals deferred: no proven native-kernel hooks, 0 bytes planned. |
 
 ### Inputs and submission gate
 
@@ -31,81 +30,38 @@ Set `OPENH_DATA_ROOT` to the release team's processed copies, laid out at the pu
 | `dvrk_ucsd` | `ucsd/` | `surgical_learning_dataset2`, `surgical_learning_dataset` |
 | `turin_mitic` | `turin/` | `mitic_lerobot_plastic_tube`, `mitic_lerobot_ex_vivo`, `mitic_lerobot_plastic_pad`, `mitic_lerobot_plastic_pad_3dmed` |
 
-**Two checks must pass before submission.**
+**Gate:** require the complete public layout and nonempty CMR valid-window index, then `data_gate.py roots <launcher>` and `data_gate.py check --scope released-recipe --light <release-source-size-table> <resolved-inputs>`. Include every one of the 41 public roots, the index folder and the native model folder, even when the script scanner cannot expand shell variables. A missing evidence row is not a pass. At the initial check the named 56-row table did not cover the index or the model; do not submit on that check. Gate again immediately before the single submission and at job start. Do not prepare data or substitute a different model.
 
-1. **Provenance and integrity:** resolve all 41 public roots from the pinned family config (including missing roots), the `indices` folder, and the released weights folder `Cosmos3-H-Embodied-Nano`. Run `data_gate.py roots` on the launcher and `data_gate.py check` on the complete set, including any additional discovered folders. The launcher’s `--check-stamps` does this resolution; scanning the shell text alone misses variable-expanded paths. Every input folder needs an owner-approved `kosher: yes` README, at least three corroborating sources, and a matching manifest. An empty root list is not a pass.
-2. **Publication:** the owner must have published all 41 prepared roots and the nonempty `indices/cmr_valid_windows_c24_stride8_reject_any_v2.npz`. The launcher’s `--check-data` checks the expected layout and index, not their provenance. A raw download or a layout check alone does not qualify.
+**Split:** shipped `val` (seed 42, fraction 0.05), exclusions and CMR windows unchanged. Realized clip-manifest hash: pending. One panel of 64 evenly spread clips per family × 10 families = 640. Each clip has 25 frames and 24 predicted action rows.
 
-**Weight clearance:** use the released DCP only after the weights owner verifies that it represents the published step-50,000 network from the final release job and clears its folder. Matching the public download alone does not establish that final-job provenance. Do not substitute another step-50,000 checkpoint.
+### Command and scoring
 
-**November 27, team-copy layout:** the stamp check exited 1. None of the 41 public roots or the index folder had a README, the released weights were marked `kosher: no`, and the CMR index was missing. The earlier 5/41 layout count was for local builds, not these inputs. No job ID or measured result exists.
-
-**Split:** use `val` as resolved by the pinned release loader, including its shipped exclusions; no custom split or overlay. The release config uses split seed 42 and a 0.05 validation fraction. **Realized split/clip manifest SHA-256: pending.** There is no complete manifest of the evaluated clips before publication and evaluation. A hash of the config would not identify the actual clips.
-
-### Planned invocation and scoring
-
-Run from the pinned checkout in the matching framework environment. The placeholders below are public data, the released checkpoint directory, and a new output directory respectively. The one-node launcher distributes these independent family/seed invocations across four GPUs; it does not shard a single rollout. Immediately before allocating the node, confirm that no prior job exists for this token and run `bash "$launcher" --preflight && sbatch "$launcher"`, where `launcher` names the file with the SHA-256 above. `--preflight` must exit 0; the job checks the inputs again at startup.
+Run the [README all-modes protocol](cosmos3_h_embodied/README_EVALUATION.md#all-modes-on-held-out-clips) three times. The first repeat is the published seed sequence. Each repeat has one FD/ID rollout and four policy rollouts, **not** one policy rollout compared with the published four-rollout mean. Explicitly disable EMA when reading the native DCP: in the published evaluation DCP the regular weights occupy both network slots; that is not true of the native format. Keep all other inference settings unchanged.
 
 ```bash
 export OPENH_DATA_ROOT='<team-processed-release-data>'
-ckpt='<released-h16-50000-dcp-model>'
-out='<evaluation-output>'
+ckpt='<released-native-iter_000050000-model>'; out='<evaluation-output>'
 families=(cmr_clinical dvrk_hamlyn dvrk_jhu dvrk_obuda dvrk_smarts dvrk_stanford dvrk_tud_grasping_retraction dvrk_ucberkeley dvrk_ucsd turin_mitic)
-for family in "${families[@]}"; do
-  for s in 0 1 2 3; do
-    mode=wam; if ((s < 3)); then mode=joint; fi
-    python -m cosmos3_h_embodied.scripts.eval --no-guardrails --checkpoint-path "$ckpt" \
-      --config-file cosmos3_h_embodied/configs/config.py --experiment openh_h16_task_prompt \
-      --dataset.dataset "$family" --dataset.model-mode "$mode" --dataset.dataset-split val \
-      --dataset.num-samples 64 --spread-samples --seed "$((20260908+s))" \
-      --num-steps 35 --guidance 6.0 -o "$out/seed$s/$family"
+for base in 20260908 20260909 20260910; do
+  for family in "${families[@]}"; do
+    for s in 0 1 2 3; do
+      mode=wam; if ((s == 0)); then mode=joint; fi
+      python -m cosmos3_h_embodied.scripts.eval --no-guardrails --no-use-ema-weights --checkpoint-path "$ckpt" \
+        --config-file cosmos3_h_embodied/configs/config.py --experiment openh_h16_task_prompt \
+        --dataset.dataset "$family" --dataset.model-mode "$mode" --dataset.dataset-split val \
+        --dataset.num-samples 64 --spread-samples --seed "$((base+s))" --num-steps 35 --guidance 6.0 \
+        -o "$out/$base/seed$s/$family"
+    done
   done
+  python tools/benchmark/summarize_eval.py --runs "$out/$base"/seed{0,1,2,3} \
+    --all-modes-families "${families[@]}" -o "$out/$base/summary"
 done
 ```
 
-The 40 invocations use the same 640 distinct clips: 64 per family, 25 frames and 24 predicted action rows per clip. Seeds `20260908`, `20260909`, and `20260910` each run **all three modes** to measure the slide 28 noise floor. Seed `20260911` adds **policy only**, retaining the README's four policy rollouts without counting the fourth seed in that noise floor. Every invocation uses 35 sampling steps and guidance 6.0.
+For each base seed report all ten family rows and All, with the spread of its four policy rollouts. Require 64 matched finite scores per expected family/mode/rollout and identical policy ground truth. Compare the three All rows and report their mean and max minus min. The consecutive base seeds produce overlapping policy seed quartets; the policy range describes these three repeats, **not** three independent four-rollout estimates or a confidence interval.
 
-**Published reference, not a result of this run:** the [evaluation README, All row](cosmos3_h_embodied/README_EVALUATION.md#all-modes-on-held-out-clips) reports FD PSNR **26.09 dB**, ID MSE **0.0087**, policy MSE **0.0518 / 0.0331** (mean / best of four), policy PSNR **23.00 / 23.88 dB**, and baseline MSE **0.0747**. Compare these with slide 10, not with the three-seed average.
+| Published reference only | FD PSNR | ID MSE | Policy MSE mean / best of 4 | Policy PSNR mean / best of 4 | Baseline MSE |
+|---|---:|---:|---:|---:|---:|
+| README All (640 clips) | 26.09 dB | 0.0087 | 0.0518 / 0.0331 | 23.00 / 23.88 dB | 0.0747 |
 
-**Scoring.** Use `load_runs`, `seed_spread` and `summarize` from the pinned `tools/benchmark/summarize_eval.py`. For each of the first three seeds in turn, validate its complete joint result against the other three seeds' policy rows with `seed_spread` (64 matched clip IDs per family, finite scores, identical policy ground truth). Reject missing or extra modes, duplicate scores, or changed clips; do not silently average partial outputs.
-
-From the clean pinned checkout, with `out` and `families` as above, the score command is:
-
-```bash
-python - "$out" "${families[@]}" <<'SCORE'
-import json, sys
-from collections import defaultdict
-from pathlib import Path
-from statistics import mean
-from tools.benchmark.summarize_eval import load_runs, seed_spread, summarize, write_table
-
-out = Path(sys.argv[1]); families = set(sys.argv[2:])
-runs = [load_runs([out / f'seed{s}']) for s in range(4)]
-policy = [{key: v for key, v in run.items() if key[1] == 'wam'} for run in runs]
-if runs[3].keys() != policy[3].keys():
-    raise ValueError('fourth seed must contain policy only')
-for s in range(3):
-    aligned = [runs[s], *(policy[k] for k in range(4) if k != s)]
-    spread = seed_spread(aligned, families)
-    if s == 0:
-        policy_seeds = spread  # order 0,1,2,3
-        readme = defaultdict(list)
-        for run in aligned:
-            for key, rows in run.items():
-                readme[key].extend(rows)
-        table = summarize(readme)
-
-per_seed = [summarize(run)['All'] for run in runs[:3]]
-floor = {'seeds': [20260908, 20260909, 20260910]}
-for key in ('fd_psnr', 'id_mse', 'policy_mse_mean'):
-    values = [row[key] for row in per_seed]
-    floor[key] = dict(values=values, mean=mean(values), range=max(values)-min(values))
-summary = out / 'summary'; summary.mkdir(exist_ok=True)
-for name, data in [('eval_summary', table), ('policy_seeds', policy_seeds), ('noise_floor', floor)]:
-    (summary / f'{name}.json').write_text(json.dumps(data, allow_nan=False, indent=2) + '\n')
-write_table(table, summary / 'eval_summary.md')
-SCORE
-```
-
-- **Slide 10, README comparison:** FD PSNR and ID MSE from seed `20260908`. Across all four policy rollouts, report mean MSE and PSNR, per-clip best of four (minimum MSE, maximum PSNR), and each seed's clip mean. Use the pinned scorer's baseline per family and sample-weighted All baseline. If the measured All baseline differs from 0.0747 at the README precision, report a clip-set difference; never substitute README reference scores for measurements.
-- **Slide 28, release at 50,000:** for each joint seed separately, take the All-row FD PSNR, ID MSE and policy MSE on the same 640 clips. Record the three values for each metric, their arithmetic mean, and their range (maximum minus minimum). This range is the empirical noise floor, not a confidence interval. Keep this three-seed summary distinct from slide 10's single-seed dynamics and four-seed policy.
+Flag a measured baseline different from 0.0747 at four decimals as a clip-set mismatch. Do not replace a measurement with its reference.
