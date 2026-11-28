@@ -9,7 +9,7 @@ One job evaluates the released H16 regular network at step 50,000 for the “Rel
 | Branch / clean evaluation commit | `ohalimi/release-all-modes` / `48fd710163aca224e5f1a65e55132a16b8460c48` |
 | Framework commit | `7cfaf7854b2114eda5deb36250a7e8f00c64d69e` |
 | Start checkpoint | Released native `iter_000050000/model`, regular `net.*` (not EMA). Native regular tensors match the published BF16 network. |
-| Planned launcher SHA-256 | `7340c3aeddaf4c56d2b51b300f2947c0d5959b34e0dc1ee8a49d4e653eb8a258` (one node, four single-GPU workers). Re-pin if the model-input owner publishes a new tokenizer path. |
+| Launcher SHA-256 | `e44198fcf1ca2def05a83bd315f42c1ef745cbaa7311a3e78e88ed9622e8472f` (one node, four single-GPU workers). Reads the published offline Qwen `0c351dd01ed8` and Wan `921dbaf3f167` snapshots from the release layout. |
 | Jobs / W&B | No job or retry; `holoscan-advanced-workflow-team/cosmos3_suturebot_memory`, no run ID or URL yet. |
 | Classification / signals | **Provisional, kosher light** until all inputs are stamped. Internal signals deferred: no proven native-kernel hooks, 0 bytes planned. |
 
